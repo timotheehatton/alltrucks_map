@@ -1,0 +1,155 @@
+{
+    "success": true,
+    "totalResults": 597,
+    "resultList": [
+      {
+        "companyNo": "CT04114",
+        "companyName": "AD Poids Lourds Ile de France",
+        "address": "21 route deParis",
+        "postalCode": "77340",
+        "city": "Pontault-Combault",
+        "country": "Frankreich",
+        "countryCode": "FR",
+        "phoneNumber": "+33 (0)164 43 41 35",
+        "fax": "",
+        "email": "d.brodin@autodistribution.com",
+        "website": "www.ad.fr",
+        "description": "Nous sommes là pourvous et quand vous avez besoin de nous. Vous pouvez à tout moment compter sur notre qualité et notrecompétence.\n\nGrâce à notre longue expérience,nos",
+        "breakdownService": "",
+        "breakdownService24h": "",
+        "alltrucksStatement": "Notre solution pour l’entretien et laréparation de vos Véhicules Industriels professionnels s’appelle « Alltrucks – Truck & Trailer Service », la marquecommune des leaders de l’équipement automobile Bosch, Knorr-Bremse et ZF. Alltrucks vous propose sa compétencemultimarque en diagnostic, entretien, maintenance et réparations pour tous les types de Véhicules Industriels, VUL,véhicules moteurs et remorqués, bus, ou encore le matériel de BTP et les machinesagricoles.",
+        "latitude": 48.77655,
+        "longitude": 2.59383,
+        "imageUrl": null,
+        "openHours": [
+          {
+            "day": "Montag",
+            "openFromAM": "08:00",
+            "openToAM": "12:00",
+            "openFromPM": "13:45",
+            "openToPM": "18:00"
+          },
+          {
+            "day": "Dienstag",
+            "openFromAM": "08:00",
+            "openToAM": "12:00",
+            "openFromPM": "13:45",
+            "openToPM": "18:00"
+          },
+          {
+            "day": "Mittwoch",
+            "openFromAM": "08:00",
+            "openToAM": "12:00",
+            "openFromPM": "13:45",
+            "openToPM": "18:00"
+          },
+          {
+            "day": "Donnerstag",
+            "openFromAM": "08:00",
+            "openToAM": "12:00",
+            "openFromPM": "13:45",
+            "openToPM": "18:00"
+          },
+          {
+            "day": "Freitag",
+            "openFromAM": "08:00",
+            "openToAM": "12:00",
+            "openFromPM": "13:45",
+            "openToPM": "18:00"
+          },
+          {
+            "day": "Samstag",
+            "openFromAM": "",
+            "openToAM": "",
+            "openFromPM": "",
+            "openToPM": ""
+          },
+          {
+            "day": "Sonntag",
+            "openFromAM": "",
+            "openToAM": "",
+            "openFromPM": "",
+            "openToPM": ""
+          }
+        ],
+        "contactPersons": [
+          {
+            "name": "PatrickNiay",
+            "position": "Chef d’entreprise",
+            "phoneNumber": "+33 (0)6 14 89 50 41",
+            "email": "patrick.niay@electro-diesel-service.fr"
+          },
+          {
+            "name": "David Brodin",
+            "position": "Chef atelier",
+            "phoneNumber": "+33 (0)1 64 43 41 35",
+            "email": "d.brodin@autodistribution.fr"
+          }
+        ],
+        "services": {
+          "categoryName": "Unsere Leistungen",
+          "offers": [
+            "Abgas- & Hauptuntersuchung",
+            "Achsvermessung",
+            "Alltrucks Protect",
+            "Anhänger- & Auflieger-Service",
+            "Aufbereitung /Waschanlage",
+            "Batterie-Service",
+            "Bremsen-Service",
+            "Elektronik-Service",
+            "Ersatz- / Mietfahrzeuge",
+            "Gesetzliche Überprüfungen (AUT)",
+            "Glas-Service / Steinschlagreperatur",
+            "Hol- & Bring-Service",
+            "Hydraulik-Service",
+            "Karosserie / Fahrwerk",
+            "Klimaanlagen & Standheizungen",
+            "Mehrmarken-Diagnose",
+            "Mobiler Einsatzwagen",
+            "Motor- & Getriebeinstandsetzung",
+            "Rahmenvermessung",
+            "Reifen-Service",
+            "Sicherheitsprüfung (SP)",
+            "Sonderumbauten",
+            "Tacho- & Fahrtenschreiberprüfung",
+            "Telematics, Navigation, Telefoneinbau",
+            "UVV Prüfung",
+            "Unfallinstandsetzung & Reparaturen",
+            "Wartungs- & Servicedienste",
+            "Zubehör"
+          ]
+        },
+        "vehicleTypes": {
+          "categoryName": "Fahrzeugarten",
+          "offers": [
+            "Anhänger/ Auflieger",
+            "Omnibusse",
+            "Autotransporter",
+            "Transporter",
+            "Baumaschinen / Kräne",
+            "Wohnmobil",
+            "Landmaschinen",
+            "Zugmaschinen",
+            "Sattelschlepper",
+            "Kommunalfahrzeuge",
+            "Schwertransporter"
+          ]
+        },
+        "partners": {
+          "categoryName": "Unsere Vertragspartner",
+          "offers": [
+            "KB Service Expert"
+          ]
+        },
+        "certifications": {
+          "categoryName": "workshopfinder.category.name.zertifizierungen",
+          "offers": []
+        },
+        "distance": "19,8",
+        "currentlyOpen": false,
+        "friendlyUrl": "4114-ad-poids-lourds-ile-de-france-pontault-combault-fr",
+        "searchable": false
+      }
+    ],
+    "searchTitle": "Diese Alltrucks Partner sind aktuell in der Nähe"
+  }
