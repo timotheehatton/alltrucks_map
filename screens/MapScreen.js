@@ -6,7 +6,6 @@ import {
   Text,
   View,
   Dimensions,
-  AsyncStorage,
   TouchableHighlight,
   ActivityIndicator,
   Linking,
@@ -14,10 +13,12 @@ import {
   StatusBar,
   AppState
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Marker } from 'react-native-maps';
 import Constants from 'expo-constants';
-import * as Permissions from 'expo-permissions';
 import * as Location from 'expo-location';
+// import Geolocation from 'react-native-geolocation-service';
+// import * as Location from 'expo-location';
 import { Feather } from '@expo/vector-icons';
 import MapView from 'react-native-maps';
 import SlidingUpPanel from 'rn-sliding-up-panel';
@@ -26,7 +27,6 @@ import Communications from 'react-native-communications';
 import 'moment';
 import 'moment/locale/fr';
 import Moment from 'moment';
-import { isIphoneX, getBottomSpace } from 'react-native-iphone-x-helper'
 import AppContext from '../context/AppContext'
 
 const { height, width } = Dimensions.get('window');
@@ -42,8 +42,9 @@ export default class MapScreen extends React.Component {
 
   constructor(props) {
     super(props)
-
     this.find_dimensions = this.find_dimensions.bind(this)
+    this.mapRef = React.createRef();
+    this.panelRef = React.createRef();
   }
 
   state = {
@@ -78,13 +79,14 @@ export default class MapScreen extends React.Component {
     }
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
     this._getLocationAsync()
     Moment.locale('fr')
     this._getCurrentDay()
     this.watchPosition()
     const { navigation } = this.props;
-    AppState.addEventListener("change", this._handleAppStateChange);
+  
+    this.appStateSubscription = AppState.addEventListener("change", this._handleAppStateChange);
     this.focusListener = navigation.addListener("didFocus", () => {
       if(this.state.mapRegion) {
         let point = {latitude: this.state.mapRegion.latitude + this.state.space , longitude: this.state.mapRegion.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
@@ -111,7 +113,12 @@ export default class MapScreen extends React.Component {
   }
 
   componentWillUnmount() {
-    AppState.removeEventListener("change", this._handleAppStateChange);
+    this.appStateSubscription?.remove();
+    this.focusListener();
+    // Also remove geolocation watcher
+    if (this.watchID) {
+      this.watchID.remove();
+    }
   }
 
   _handleAppStateChange = async nextAppState => {
@@ -120,7 +127,10 @@ export default class MapScreen extends React.Component {
       nextAppState === "active"
     ) {
       const location = await this._getLocationAsync()
-      this.refs.map.animateToRegion(location, 300);
+      if (this.mapRef.current) {
+        console.log('location', location)
+        this.mapRef.current.animateToRegion(location, 300);
+      }
     }
     this.setState({ appState: nextAppState });
   };
@@ -130,15 +140,12 @@ export default class MapScreen extends React.Component {
     return haversine(prevLatLng, newLatLng, {unit: 'meter'}) || 0;
   };
 
-  watchPosition() {
-    this.watchID = navigator.geolocation.watchPosition(
+  watchPosition = () => {
+    this.watchID = Location.watchPositionAsync(
       position => {
         const { latitude, longitude } = position.coords;
       
-
-        if(this.state.currentLocation !== null) {
-          
-          
+        if (this.state.currentLocation !== null) {
           const newCoordinate = {
             latitude,
             longitude
@@ -147,38 +154,23 @@ export default class MapScreen extends React.Component {
           this.setState({
             currentLocation: newCoordinate
           });
-
-          // this.setState({
-          //   distanceTravelled : this.calcDistance(newCoordinate),
-          //   currentLocation: newCoordinate
-          // }, () => {
-          //   setTimeout(() => {
-          //     if(this.state.distanceTravelled >= 3000) {
-          //       this.storeLocation(JSON.stringify(newCoordinate));
-          //       this.setState({
-          //         distanceTravelled: 0
-          //       })
-          //     } 
-          //   }, 30);
-          // })
         }
       },
-      error => console.log(error),
+      error => console.log('ici', error),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     );
   }
 
-  find_dimensions(layout){
-
+  find_dimensions = (layout) => {
     let sizeHeight = layout.height
     let sizePanel = sizeHeight
 
     if (Platform.OS != "android") {
-      if (isIphoneX()) {
-        sizePanel += 75 + getBottomSpace()
-      } else {
-          sizePanel += 75
-      }
+      // if (isIphoneX()) {
+      //   sizePanel += 75 + getBottomSpace()
+      // } else {
+      sizePanel += 75
+      // }
     } else {
       sizePanel += 75
     }
@@ -189,9 +181,9 @@ export default class MapScreen extends React.Component {
         bottom: 120,
       }
     }, () => {
-      this.refs.panelRefs._animatedValueY = sizePanel
-      this.refs.panelRefs.transitionTo(-sizePanel)
-      this.refs.panelRefs.forceUpdate()
+      this.panelRefs._animatedValueY = sizePanel
+      this.panelRefs.transitionTo(-sizePanel)
+      this.panelRefs.forceUpdate()
     })
   }
 
@@ -207,7 +199,7 @@ export default class MapScreen extends React.Component {
   };
 
   _getLocationAsync = async () => {
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       this.setState({
         locationResult: 'Permission to access location was denied',
@@ -229,18 +221,18 @@ export default class MapScreen extends React.Component {
     return toStore
   };
 
-  _clickOnMarker(marker) {
+  _clickOnMarker = (marker) => {
     let delay = 300
     let point = {latitude: marker.latitude - this.state.space , longitude: marker.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
     this.setState({contentPanel: marker})
     this.setState({visible: true})
-    this.refs.map.animateToRegion(point, delay);
+    this.mapRef.animateToRegion(point, delay);
     setTimeout(() => {
       this.setState({mapRegion: point})
     }, 400);
   }
 
-  getMarkerFromListe(marker) {
+  getMarkerFromListe = (marker) => {
     let delay = 300
     let point = {
       latitude: marker.latitude - this.state.space,
@@ -248,9 +240,7 @@ export default class MapScreen extends React.Component {
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421
     }
-    
-    this.refs.map.animateToRegion(point, delay);
-
+    this.mapRef.animateToRegion(point, delay);
     setTimeout(() => {
       this.setState({
         contentPanel: marker,
@@ -263,12 +253,12 @@ export default class MapScreen extends React.Component {
     }, 400);
   }
 
-  closePanel() {
+  closePanel = () => {
     let delay = 300
     let point = {latitude: this.state.mapRegion.latitude + this.state.space , longitude: this.state.mapRegion.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
     this.setState({visible: false})
     setTimeout(() => {
-      this.refs.map.animateToRegion(point, delay);
+      this.mapRef.animateToRegion(point, delay);
     }, 50);
     setTimeout(() => {
       this.setState({
@@ -277,8 +267,7 @@ export default class MapScreen extends React.Component {
     }, 400);
   }
 
-  getDistance(startCoord, endCoord) {
-
+  getDistance = (startCoord, endCoord) => {
     let distanceMetre = geolib.getDistanceSimple(
       {latitude: startCoord.latitude, longitude: startCoord.longitude},
       {latitude: endCoord.latitude, longitude: endCoord.longitude}
@@ -288,7 +277,7 @@ export default class MapScreen extends React.Component {
     return Math.round(distanceKm)
   }
 
-  openMapApp() {
+  openMapApp = () => {
     let scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
     let latLng = `${this.state.contentPanel.latitude},${this.state.contentPanel.longitude}`;
     let label = `${this.state.contentPanel.companyName}`;
@@ -314,7 +303,7 @@ export default class MapScreen extends React.Component {
     }
   }
 
-  _getCurrentDay() {
+  _getCurrentDay = () => {
     let date = new Date();
     let day = Moment().weekday()
     let hour = ("0" + date.getHours()).slice(-2);
@@ -327,7 +316,7 @@ export default class MapScreen extends React.Component {
     this.state.currentDay.hour = hour+':'+minute
   }
 
-  _getGarageHour(day) {
+  _getGarageHour = (day) => {
     this._getCurrentDay()
     let date = new Date();
     let statement = null
@@ -376,11 +365,11 @@ export default class MapScreen extends React.Component {
     )
   }
 
-  openMailApp() {
+  openMailApp = () => {
     Linking.openURL('mailto:' + this.state.contentPanel.email)
   }
 
-  openTelApp() {
+  openTelApp = () => {
     let phoneNumber = this.state.contentPanel.phoneNumber
     if (this.state.contentPanel.country != 'Italien') {
       phoneNumber = phoneNumber.replace('(0)', '');
@@ -388,7 +377,7 @@ export default class MapScreen extends React.Component {
     Linking.openURL(`tel:${phoneNumber}`)
   }
 
-  openWebApp() {
+  openWebApp = () => {
     let website = this.state.contentPanel.web
     if (website) {
       Communications.web('http://' + website, true)
@@ -397,7 +386,7 @@ export default class MapScreen extends React.Component {
     }
   }
 
-  centerMap() {
+  centerMap = () => {
     let delay =  300
     let current = {
       latitude: this.state.currentLocation.latitude,
@@ -405,8 +394,7 @@ export default class MapScreen extends React.Component {
       latitudeDelta: 4,
       longitudeDelta: 4
     }
-
-    this.refs.map.animateToRegion(current, delay);
+    this.mapRef.animateToRegion(current, delay);
     setTimeout(() => {
       this.setState({
         visible: false,
@@ -415,18 +403,17 @@ export default class MapScreen extends React.Component {
     }, delay);
   }
 
-  componentDidUpdate(){
-    const { navigation } = this.props;
-    if(this.state.oneLoad === false && navigation.getParam('selectedMarker', 'no-marker') !== "no-marker") {
-      this.getMarkerFromListe(navigation.getParam('selectedMarker', 'no-marker'))
-      this.props.navigation.setParams({ selectedMarker: 'no-marker' })
-    }
+  componentDidUpdate = () => {
+    // const { navigation } = this.props;
+    // if(this.state.oneLoad === false && navigation.getParam('selectedMarker', 'no-marker') !== "no-marker") {
+    //   this.getMarkerFromListe(navigation.getParam('selectedMarker', 'no-marker'))
+    //   this.props.navigation.setParams({ selectedMarker: 'no-marker' })
+    // }
   }
 
   closeRequest = () => this.setState({visible: false})
 
-  render() {
-
+  render = () => {
     const { mapBase } = this.context
     if(mapBase === null) {
       return (
@@ -439,8 +426,8 @@ export default class MapScreen extends React.Component {
 
     return (
       <View style={styles.container}>
-      <StatusBar hidden={true}/>
-        {
+      {/* <StatusBar hidden={true}/> */}
+        {/*{
           this.state.locationResult === null ?
           <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color="#021A3E" />
@@ -456,7 +443,7 @@ export default class MapScreen extends React.Component {
               <MapView
                 style={{ alignSelf: 'stretch', height: height }}
                 initialRegion={this.state.mapRegion}
-                ref="map"
+                ref={this.mapRef}
               >
                 <Marker
                   key="ugdiue"
@@ -496,10 +483,10 @@ export default class MapScreen extends React.Component {
                   </Marker>
                 ))}
               </MapView>
-              <TouchableHighlight style={styles.centerMapBtn_container} underlayColor="#FFF" underlayColor="transparent" onPress={this.centerMap.bind(this)} >
+              <TouchableHighlight style={styles.centerMapBtn_container} underlayColor="#FFF" onPress={this.centerMap.bind(this)} >
                 <View style={styles.centerMapBtn}>
                   <View style={{flex: 1, alignItems: 'center', justifyContent: 'center',}}>
-                    <Feather name="navigation" size={24} color="black" /> 
+                    <Feather name="navigation" size={24} color="black" />
                   </View>
                 </View>
               </TouchableHighlight>
@@ -511,18 +498,18 @@ export default class MapScreen extends React.Component {
               <View style={{flex: 1, alignItems: 'center', justifyContent: 'center',}}>
               </View>
             </View>
-        }
-        <SlidingUpPanel
+        }*/}
+        {/*<SlidingUpPanel
           visible={this.state.visible}
-          onRequestClose={this.closeRequest}
+          // onRequestClose={this.closeRequest}
           draggableRange={this.state.draggableRange}
           backdropOpacity={0.1}
           onRequestClose={this.closePanel.bind(this)}
-          ref='panelRefs'
+          ref={this.panelRef}
           >
             {dragHandler => (
               this.state.visible === true ?
-                <View style={styles.panelContent} {...dragHandler} onLayout={(event) => { this.find_dimensions(event.nativeEvent.layout) }} ref="contentPanelRefs">
+                <View style={styles.panelContent} {...dragHandler} onLayout={(event) => { this.find_dimensions(event.nativeEvent.layout) }}>
                   <View style={styles.panelHeaderBorderContainer} {...dragHandler}>
                     <View style={styles.panelHeaderBorder} />
                   </View>
@@ -562,27 +549,27 @@ export default class MapScreen extends React.Component {
                       </View>
                     </View>
                   </View>
-                  <View style={styles.panelBorder}></View>
+                 <View style={styles.panelBorder}></View>
                   <View style={styles.panelButtonBar}>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" underlayColor="transparent" onPress={this.openTelApp.bind(this)} >
+                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openTelApp.bind(this)} >
                       <View style={styles.panelButtonofBar__container}>
                         <Feather name="phone" size={24} color="black" />
                         <Text style={styles.panelButtonofBar__text}>Call</Text>
                       </View>
                     </TouchableHighlight>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" underlayColor="transparent" onPress={this.openMapApp.bind(this)} >
+                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openMapApp.bind(this)} >
                       <View style={styles.panelButtonofBar__container}>
-                        <Feather name="compass" size={24} color="black" /> 
+                        <Feather name="compass" size={24} color="black" />
                         <Text style={styles.panelButtonofBar__text}>Navigation</Text>
                       </View>
                     </TouchableHighlight>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" underlayColor="transparent" onPress={this.openMailApp.bind(this)} >
+                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openMailApp.bind(this)} >
                       <View style={styles.panelButtonofBar__container}>
                         <Feather name="mail" size={24} color="black" />
                         <Text style={styles.panelButtonofBar__text}>Email</Text>
                       </View>
                     </TouchableHighlight>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" underlayColor="transparent" onPress={this.openWebApp.bind(this)} >
+                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openWebApp.bind(this)} >
                       <View style={styles.panelButtonofBar__container}>
                         <Feather name="external-link" size={24} color="black" />
                         <Text style={styles.panelButtonofBar__text}>Website</Text>
@@ -594,7 +581,7 @@ export default class MapScreen extends React.Component {
                 null
 
             )}
-        </SlidingUpPanel>
+        </SlidingUpPanel>*/}
       </View>
     );
   }

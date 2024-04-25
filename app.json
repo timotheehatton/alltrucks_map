@@ -52,6 +52,9 @@
           "apiKey": "AIzaSyDm0zmmHdAG4O9z9BDSV0TeNJxof1x86lw"
         }
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

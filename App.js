@@ -1,20 +1,22 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Platform, StatusBar, StyleSheet, View, ActivityIndicator, Text, AsyncStorage } from 'react-native'
-import { AppLoading, SplashScreen } from 'expo'
-import * as Icon from '@expo/vector-icons'
+import * as SplashScreen from 'expo-splash-screen';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Font from 'expo-font'
-import * as Permissions from 'expo-permissions'
 import * as Location from 'expo-location'
 import { Asset } from 'expo-asset'
-import AppNavigator from './navigation/AppNavigator'
+import MainTabNavigator from './navigation/MainTabNavigator'
 import axios from 'axios'
 import { API_URL } from './Utile'
-
 import AppContext from './context/AppContext'
-export default class App extends React.Component {
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
+
+
+export default class App extends Component {
   state = {
     isLoadingComplete: false,
-    mapBase : null,
+    mapBase: null,
     jsonFirstPartLoader: false,
     jsonFullPartLoader: false,
     currentLocation: null,
@@ -24,9 +26,39 @@ export default class App extends React.Component {
     requestParams_page: 1,
   }
 
-  componentDidMount() {
-    SplashScreen.preventAutoHide()
-    this.checkJson()
+  async componentDidMount() {
+    try {
+      await SplashScreen.preventAutoHideAsync();
+      await this._loadResourcesAsync();
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  _loadResourcesAsync = async () => {
+    try {
+      await Promise.all([
+        Asset.loadAsync([
+          require('./assets/images/markerMeIphone.png'),
+          require('./assets/images/logo-inline.png'),
+          require('./assets/images/pinIphone.png'),
+          require('./assets/images/avatar.png'),
+        ]),
+        Font.loadAsync({
+          ...Ionicons.font,
+          'sf-pro-display': require('./assets/fonts/SF-Pro-Display-Bold.ttf'),
+          'sf-pro-text': require('./assets/fonts/SF-Pro-Text-Regular.ttf'),
+          'sf-pro-text-bold': require('./assets/fonts/SF-Pro-Text-Bold.ttf'),
+          'sf-pro-text-semibold': require('./assets/fonts/SF-Pro-Text-Semibold.ttf'),
+        }),
+        this.checkJson()  // Assuming checkJson initiates some data loading
+      ]);
+      this.setState({ isLoadingComplete: true }, async () => {
+        await SplashScreen.hideAsync();
+      });
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   storeJson = async (toStore) => {
@@ -37,23 +69,10 @@ export default class App extends React.Component {
   };
 
   checkJson = async () => {
-    // try {
-    //   const value = await AsyncStorage.getItem('workshop');
-    //   if (value !== null) {
-    //     this.setContextJson(JSON.parse(value))
-    //     this._getLocationAsync('all')
-    //     console.log('all')
-    //   } else {
-    //     this._getLocationAsync('pages')
-    //     console.log('page')
-    //   }
-    // } catch (error) {
-    //   console.log('cache error', error)
-    // }
     this._getLocationAsync('pages')
   }
 
-  setContextJson(json) {
+  setContextJson = (json) => {
     this.setState({
       jsonFirstPartLoader: true,
       jsonFullPartLoader: true,
@@ -62,7 +81,7 @@ export default class App extends React.Component {
   }
 
   _getLocationAsync = async (scope) => {
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       let currentLocation = {latitude: 48.856613, longitude: 2.352222, latitudeDelta: 15, longitudeDelta: 15}
       this.setState({
@@ -81,7 +100,7 @@ export default class App extends React.Component {
     }
    };
 
-  loadJson(currentLocation, scope) {
+  loadJson = (currentLocation, scope) => {
     const {requestParams_page, requestParams_count} = this.state
     const paramsObj = {
       p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
@@ -120,7 +139,7 @@ export default class App extends React.Component {
       });
   }
 
-  async startLooping(jsonBase, scope) {
+  startLooping = async(jsonBase, scope) => {
     let endGetJson = false
     let json = jsonBase
     let page = 2
@@ -142,7 +161,7 @@ export default class App extends React.Component {
     }
   }
 
-  async launchRequest(currentPage) {
+  launchRequest = (currentPage) => {
     const {currentLocation, requestParams_count} = this.state
     const paramsObj = {
       p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
@@ -184,64 +203,37 @@ export default class App extends React.Component {
   }
 
   render() {
-    const { mapBase, jsonFirstPartLoader } = this.state
-    if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
-      return (
-        <View style={{ flex: 1, backgroundColor: '#FFF' }}>
-          <AppLoading
-            startAsync={this._loadResourcesAsync}
-            onError={this._handleLoadingError}
-            onFinish={this._handleFinishLoading}
-          />
+    const { mapBase, jsonFirstPartLoader, isLoadingComplete } = this.state;
 
-        </View>
-      )
-    } else if(!jsonFirstPartLoader) {
+    if (!isLoadingComplete) {
       return (
-        <View style={{ flex: 1, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#021A3E" />
-          <Text style={{marginTop: 20, color: "#021A3E"}}>Loading app content...</Text>
-        </View>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        </GestureHandlerRootView>
+      )
+    } else if (!jsonFirstPartLoader) {
+      return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#021A3E" />
+            <Text style={{ marginTop: 20, color: "#021A3E" }}>Loading app content...</Text>
+          </View>
+        </GestureHandlerRootView>
       )
     } else {
       return (
-        <AppContext.Provider value={{
-            mapBase: mapBase, 
-          }}>
-
-          <View style={styles.container}>
-            {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-            <AppNavigator />
-          </View>
-        </AppContext.Provider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <AppContext.Provider value={{ mapBase: mapBase }}>
+            <View style={styles.container}>
+              {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+              <MainTabNavigator />
+            </View>
+          </AppContext.Provider>
+        </GestureHandlerRootView>
       )
     }
-  }
-
-  _loadResourcesAsync = async () => {
-    return Promise.all([
-      Asset.loadAsync([
-        require('./assets/images/markerMeIphone.png'),
-        require('./assets/images/logo-inline.png'),
-        require('./assets/images/pinIphone.png'),
-        require('./assets/images/avatar.png'),
-      ]),
-      Font.loadAsync({
-        ...Icon.Ionicons.font,
-        'sf-pro-display': require('./assets/fonts/SF-Pro-Display-Bold.ttf'),
-        'sf-pro-text': require('./assets/fonts/SF-Pro-Text-Regular.ttf'),
-        'sf-pro-text-bold': require('./assets/fonts/SF-Pro-Text-Bold.ttf'),
-        'sf-pro-text-semibold': require('./assets/fonts/SF-Pro-Text-Semibold.ttf'),
-      }),
-    ])
-  }
-
-  _handleLoadingError = error => {
-    console.warn(error)
-  }
-
-  _handleFinishLoading = () => {
-    this.setState({ isLoadingComplete: true })
   }
 }
 

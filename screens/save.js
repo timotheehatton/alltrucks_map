@@ -23,7 +23,6 @@ import 'moment/locale/fr';
 import Moment from 'moment';
 import AppContext from '../context/AppContext'
 
-import * as Permissions from 'expo-permissions';
 import * as Location from 'expo-location';
 
 const garageList = require('../assets/garage/list.json');
@@ -90,7 +89,7 @@ export default class ListeScreen extends React.Component {
   }
 
   _getLocationAsync = async () => {
-    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       this.setState({
         locationResult: 'Permission to access location was denied',

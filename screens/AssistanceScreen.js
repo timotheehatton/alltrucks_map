@@ -26,7 +26,7 @@ export default class AssistanceScreen extends React.Component {
               Alltrucks Assistance
             </Text>
           </View>
-            <TouchableHighlight style={styles.btnAssistance} underlayColor="#FFF" underlayColor="transparent" onPress={this.openTelAssistance.bind(this)} >
+            <TouchableHighlight style={styles.btnAssistance} underlayColor="#FFF" onPress={this.openTelAssistance.bind(this)} >
               <View style={styles.btnContainer} >
                 <Svg width={55} height={63}>
                   <Path
