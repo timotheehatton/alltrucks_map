@@ -16,7 +16,7 @@ function MapStackNavigator() {
   return (
     <MapStack.Navigator screenOptions={{ headerShown: false }}>
       <MapStack.Screen
-        name="Map"
+        name="MapScreen"
         component={MapScreen}
         options={
           {
@@ -40,7 +40,7 @@ function ListeStackNavigator() {
   return (
     <ListeStack.Navigator screenOptions={{ headerShown: false }}>
       <ListeStack.Screen
-        name="List"
+        name="ListScreen"
         component={ListeScreen}
         options={
           {
@@ -64,7 +64,7 @@ function AssistanceStackNavigator() {
   return (
     <AssistanceStack.Navigator screenOptions={{ headerShown: false }}>
       <AssistanceStack.Screen
-        name="Assistance"
+        name="AssistanceScreen"
         component={AssistanceScreen}
         options={
           {
@@ -93,11 +93,11 @@ function App() {
           tabBarIcon: ({ focused, color }) => {
             let iconName;
 
-            if (route.name === 'MapScreen') {
+            if (route.name === 'Map') {
               iconName = focused ? 'map' : 'map-outline';
-            } else if (route.name === 'ListScreen') {
+            } else if (route.name === 'List') {
               iconName = focused ? 'list' : 'list-outline';
-            } else if (route.name === 'AssistanceScreen') {
+            } else if (route.name === 'Assistance') {
               iconName = focused ? 'help-circle' : 'help-circle-outline';
             }
 
@@ -114,9 +114,9 @@ function App() {
           }
         })}
       >
-        <Tab.Screen name="MapScreen" component={MapStackNavigator} />
-        <Tab.Screen name="ListScreen" component={ListeStackNavigator} />
-        <Tab.Screen name="AssistanceScreen" component={AssistanceStackNavigator} />
+        <Tab.Screen name="Map" component={MapStackNavigator} />
+        <Tab.Screen name="List" component={ListeStackNavigator} />
+        <Tab.Screen name="Assistance" component={AssistanceStackNavigator} />
       </Tab.Navigator>
     </NavigationContainer>
   );

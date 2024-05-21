@@ -9,19 +9,19 @@ import {
   Dimensions,
   SafeAreaView,
   ActivityIndicator,
-  AsyncStorage,
   Platform,
   FlatList,
 } from 'react-native';
 
 import { API_URL } from '../Utile'
 import axios from 'axios';
-import { isIphoneX, getBottomSpace } from 'react-native-iphone-x-helper'
 import { ListItem, SearchBar} from 'react-native-elements';
 import 'moment';
 import 'moment/locale/fr';
 import Moment from 'moment';
 import AppContext from '../context/AppContext'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 import * as Location from 'expo-location';
 
@@ -57,43 +57,38 @@ export default class ListeScreen extends React.Component {
   };
 
   componentDidMount() {
-    this._getCurrentDay()
-  }
-
-  componentWillMount() {
     Moment.locale('fr');
     this._getCurrentDay();
-    this.retrieveLocation()
+    this.retrieveLocation();
     const { navigation } = this.props;
     
     this.focusListener = navigation.addListener("didFocus", async () => {
-      this.checkLocation()
-      this._getCurrentDay()
+      this.checkLocation();
+      this._getCurrentDay();
       this.setState({
         loading: true,
         requestParams_page: 0,
         startScroll: false,
         waitForData: false,
         search: ''
-      })
-      let newPos = await this.getNewLocation()
-      // if(this.state.currentPosition !== null && newPos !== null) {
-      //   if(this.state.currentPosition.latitude !== newPos.latitude || this.state.currentPosition.longitude !== newPos.longitude) {
-      //     if(this.state.endOrder === true) {
-      //       let temp = newPos
-      //       this.setState({currentPosition: temp})
-      //       this.callNewList(temp)
-      //     }
-      //   }
-      //   else {
-      //     this.setState({loading: false});
-      //   }
-      // }
-      // else {
-      //   this.setState({loading: false});
-      // }
+      });
 
-      this._getLocationAsync()
+      let newPos = await this.getNewLocation();
+      if (this.state.currentPosition && newPos) {
+        if (this.state.currentPosition.latitude !== newPos.latitude || this.state.currentPosition.longitude !== newPos.longitude) {
+          if (this.state.endOrder) {
+            this.setState({ currentPosition: newPos }, () => {
+              this.callList(newPos);
+            });
+          }
+        } else {
+          this.setState({ loading: false });
+        }
+      } else {
+        this.setState({ loading: false });
+      }
+
+      this._getLocationAsync();
     });
   }
 
@@ -107,15 +102,18 @@ export default class ListeScreen extends React.Component {
       this.setState({ hasLocationPermissions: true });
     }
 
-    let location = await Location.getCurrentPositionAsync({accuracy: 3});
-    this.callNewList(location.coords)
+    let location = await Location.getCurrentPositionAsync({ accuracy: 3 });
+    this.callList(location.coords)
   };
 
   checkLocation = async () => {
     try {
       const value = await AsyncStorage.getItem('location');
       if (value !== null) {
-        if(JSON.parse(value).latitude !== this.state.currentPosition.latitude || JSON.parse(value).longitude !== this.state.currentPosition.longitude) {
+        if (
+          JSON.parse(value).latitude !== this.state.currentPosition.latitude
+          || JSON.parse(value).longitude !== this.state.currentPosition.longitude
+        ) {
           this.setState({tempPosition: JSON.parse(value)});
         }
       }
@@ -132,15 +130,20 @@ export default class ListeScreen extends React.Component {
     } catch (error) {
     }
   }
-  
 
   retrieveLocation = async () => {
     try {
       const value = await AsyncStorage.getItem('location');
       if (value !== null) {
-        this.setState({currentPosition: JSON.parse(value), endOrder: true});
+        this.setState(
+          {
+            currentPosition: JSON.parse(value),
+            endOrder: true
+          }
+        );
       }
     } catch (error) {
+      console.log('error catching value', error);
     }
   }
 
@@ -193,13 +196,12 @@ loadJson(currentPosition, page) {
 
 }
 
-  callNewList(currentPosition) {
+  callList(currentPosition) {
     let page = this.state.requestParams_page
     this.loadJson(currentPosition, page+1)
   }
 
   getDistance(startCoord, endCoord) {
-
     let distanceMetre = geolib.getDistanceSimple(
       {latitude: startCoord.latitude, longitude: startCoord.longitude},
       {latitude: endCoord.latitude, longitude: endCoord.longitude}
@@ -210,7 +212,6 @@ loadJson(currentPosition, page) {
   }
 
   writeDistance() {
-
     this.state.garageList.forEach(element => {
       element.distance = this.getDistance({latitude: this.state.currentPosition.latitude, longitude: this.state.currentPosition.longitude }, {latitude: element.latitude, longitude: element.longitude })
     });
@@ -334,26 +335,11 @@ loadJson(currentPosition, page) {
   }
 
   handleLoadMore() {
-    // if(!this.state.hasScrolled){ return null; }
-
     if(!this.state.waitForData) {
       this.setState({
         waitForData: true
       })
       this._getLocationAsync()
-    }
-  }
-
-  getBottom() {
-    if (Platform.OS != "android") {
-      if (isIphoneX()) {
-        return 10
-      } else {
-          return 10
-      }
-    } else {
-      // return 280
-      return 10
     }
   }
 
@@ -420,7 +406,7 @@ loadJson(currentPosition, page) {
         }
         {
           this.state.waitForData && (
-          <View style={[styles.loaderDataContainer, { paddingBottom: this.getBottom() }]}>
+          <View style={[styles.loaderDataContainer, { paddingBottom: 10 }]}>
             <ActivityIndicator size="small" color="#FFF" />
           </View>
           )

@@ -3,12 +3,12 @@ import {
   StyleSheet,
   Text,
   Dimensions,
+  Linking,
   SafeAreaView,
   TouchableHighlight,
   View,
 } from 'react-native';
-import Communications from 'react-native-communications';
-import Svg,{Path} from 'react-native-svg';
+import Svg, {Path} from 'react-native-svg';
 const { width } = Dimensions.get('window');
 
 export default class AssistanceScreen extends React.Component {
@@ -114,7 +114,7 @@ export default class AssistanceScreen extends React.Component {
   }
 
   openTelAssistance() {
-    Communications.phonecall('0080046835033', true)
+    Linking.openURL('tel:0080046835033')
   }
   
 }

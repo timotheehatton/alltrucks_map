@@ -14,13 +14,11 @@ import {
   AppState
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Marker } from 'react-native-maps';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
-// import Geolocation from 'react-native-geolocation-service';
-// import * as Location from 'expo-location';
 import { Feather } from '@expo/vector-icons';
 import MapView from 'react-native-maps';
+import { Marker } from 'react-native-maps';
 import SlidingUpPanel from 'rn-sliding-up-panel';
 import haversine from 'haversine';
 import Communications from 'react-native-communications';
@@ -45,6 +43,9 @@ export default class MapScreen extends React.Component {
     this.find_dimensions = this.find_dimensions.bind(this)
     this.mapRef = React.createRef();
     this.panelRef = React.createRef();
+    console.log('yooo');
+    this.closePanel = this.closePanel.bind(this);
+    this.handlePanelClose = this.handlePanelClose.bind(this);
   }
 
   state = {
@@ -112,7 +113,7 @@ export default class MapScreen extends React.Component {
     });
   }
 
-  componentWillUnmount() {
+  UNSAFE_componentWillUnmount() {
     this.appStateSubscription?.remove();
     this.focusListener();
     // Also remove geolocation watcher
@@ -127,10 +128,7 @@ export default class MapScreen extends React.Component {
       nextAppState === "active"
     ) {
       const location = await this._getLocationAsync()
-      if (this.mapRef.current) {
-        console.log('location', location)
-        this.mapRef.current.animateToRegion(location, 300);
-      }
+      this.mapRef.current.animateToRegion(location, delay);
     }
     this.setState({ appState: nextAppState });
   };
@@ -140,50 +138,51 @@ export default class MapScreen extends React.Component {
     return haversine(prevLatLng, newLatLng, {unit: 'meter'}) || 0;
   };
 
-  watchPosition = () => {
-    this.watchID = Location.watchPositionAsync(
-      position => {
-        const { latitude, longitude } = position.coords;
-      
-        if (this.state.currentLocation !== null) {
-          const newCoordinate = {
-            latitude,
-            longitude
-          };
-
-          this.setState({
-            currentLocation: newCoordinate
-          });
+  watchPosition = async () => {
+    try {
+      this.watchID = await Location.watchPositionAsync(
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
+        position => {
+          const { latitude, longitude } = position.coords;
+          if (this.state.currentLocation !== null) {
+            const newCoordinate = {
+              latitude,
+              longitude
+            };
+            this.setState({
+              currentLocation: newCoordinate
+            });
+          }
         }
-      },
-      error => console.log('ici', error),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-    );
+      );
+    } catch (error) {
+      console.error('Error watching position:', error);
+    }
   }
 
   find_dimensions = (layout) => {
     let sizeHeight = layout.height
     let sizePanel = sizeHeight
 
-    if (Platform.OS != "android") {
-      // if (isIphoneX()) {
-      //   sizePanel += 75 + getBottomSpace()
-      // } else {
-      sizePanel += 75
-      // }
-    } else {
-      sizePanel += 75
-    }
+    // if (Platform.OS != "android") {
+    //   // if (isIphoneX()) {
+    //   //   sizePanel += 75 + getBottomSpace()
+    //   // } else {
+    //   sizePanel += 75
+    //   // }
+    // } else {
+    //   sizePanel += 75
+    // }
 
     this.setState({
       draggableRange: {
         top: sizePanel,
-        bottom: 120,
+        bottom: 0,
       }
     }, () => {
-      this.panelRefs._animatedValueY = sizePanel
-      this.panelRefs.transitionTo(-sizePanel)
-      this.panelRefs.forceUpdate()
+      this.panelRef.current.show()
+      // this.mapRef.current.animateToRegion(-sizePanel)
+      // this.mapRef.current.forceUpdate()
     })
   }
 
@@ -223,24 +222,24 @@ export default class MapScreen extends React.Component {
 
   _clickOnMarker = (marker) => {
     let delay = 300
-    let point = {latitude: marker.latitude - this.state.space , longitude: marker.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
+    let point = {latitude: marker.latitude - this.state.space, longitude: marker.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
     this.setState({contentPanel: marker})
     this.setState({visible: true})
-    this.mapRef.animateToRegion(point, delay);
+    this.mapRef.current.animateToRegion(point, delay);
     setTimeout(() => {
       this.setState({mapRegion: point})
     }, 400);
   }
 
   getMarkerFromListe = (marker) => {
-    let delay = 300
+    let delay = 30
     let point = {
       latitude: marker.latitude - this.state.space,
       longitude: marker.longitude,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421
     }
-    this.mapRef.animateToRegion(point, delay);
+    this.mapRef.current.animateToRegion(point, delay);
     setTimeout(() => {
       this.setState({
         contentPanel: marker,
@@ -254,11 +253,17 @@ export default class MapScreen extends React.Component {
   }
 
   closePanel = () => {
+    console.log('close panel');
     let delay = 300
-    let point = {latitude: this.state.mapRegion.latitude + this.state.space , longitude: this.state.mapRegion.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
+    let point = {
+      latitude: this.state.mapRegion.latitude + this.state.space,
+      longitude: this.state.mapRegion.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421
+    }
     this.setState({visible: false})
     setTimeout(() => {
-      this.mapRef.animateToRegion(point, delay);
+      this.mapRef.current.animateToRegion(point, delay);
     }, 50);
     setTimeout(() => {
       this.setState({
@@ -386,6 +391,12 @@ export default class MapScreen extends React.Component {
     }
   }
 
+  handlePanelClose = () => {
+    console.log("close panel");
+    this.closeRequest();
+    this.closePanel();
+  }
+
   centerMap = () => {
     let delay =  300
     let current = {
@@ -394,7 +405,7 @@ export default class MapScreen extends React.Component {
       latitudeDelta: 4,
       longitudeDelta: 4
     }
-    this.mapRef.animateToRegion(current, delay);
+    this.mapRef.current.animateToRegion(current, delay);
     setTimeout(() => {
       this.setState({
         visible: false,
@@ -404,11 +415,16 @@ export default class MapScreen extends React.Component {
   }
 
   componentDidUpdate = () => {
-    // const { navigation } = this.props;
-    // if(this.state.oneLoad === false && navigation.getParam('selectedMarker', 'no-marker') !== "no-marker") {
-    //   this.getMarkerFromListe(navigation.getParam('selectedMarker', 'no-marker'))
-    //   this.props.navigation.setParams({ selectedMarker: 'no-marker' })
-    // }
+    const { route, navigation } = this.props;
+    const selectedMarker = route.params?.selectedMarker ?? 'no-marker';
+
+    if (
+      this.state.oneLoad === false &&
+      selectedMarker !== "no-marker"
+    ) {
+      this.getMarkerFromListe(selectedMarker);
+      navigation.setParams({ selectedMarker: 'no-marker' });
+    }
   }
 
   closeRequest = () => this.setState({visible: false})
@@ -426,8 +442,8 @@ export default class MapScreen extends React.Component {
 
     return (
       <View style={styles.container}>
-      {/* <StatusBar hidden={true}/> */}
-        {/*{
+        <StatusBar hidden={true}/>
+        {
           this.state.locationResult === null ?
           <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color="#021A3E" />
@@ -498,15 +514,14 @@ export default class MapScreen extends React.Component {
               <View style={{flex: 1, alignItems: 'center', justifyContent: 'center',}}>
               </View>
             </View>
-        }*/}
-        {/*<SlidingUpPanel
+        }
+        <SlidingUpPanel
           visible={this.state.visible}
-          // onRequestClose={this.closeRequest}
+          onRequestClose={this.handlePanelClose}
           draggableRange={this.state.draggableRange}
           backdropOpacity={0.1}
-          onRequestClose={this.closePanel.bind(this)}
           ref={this.panelRef}
-          >
+        >
             {dragHandler => (
               this.state.visible === true ?
                 <View style={styles.panelContent} {...dragHandler} onLayout={(event) => { this.find_dimensions(event.nativeEvent.layout) }}>
@@ -581,7 +596,7 @@ export default class MapScreen extends React.Component {
                 null
 
             )}
-        </SlidingUpPanel>*/}
+        </SlidingUpPanel>
       </View>
     );
   }
