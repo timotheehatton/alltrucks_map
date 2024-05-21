@@ -43,7 +43,7 @@ export default class MapScreen extends React.Component {
     this.find_dimensions = this.find_dimensions.bind(this)
     this.mapRef = React.createRef();
     this.panelRef = React.createRef();
-    console.log('yooo');
+    console.log('yooo loooo');
     this.closePanel = this.closePanel.bind(this);
     this.handlePanelClose = this.handlePanelClose.bind(this);
   }

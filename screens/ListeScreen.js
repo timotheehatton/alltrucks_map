@@ -15,7 +15,7 @@ import {
 
 import { API_URL } from '../Utile'
 import axios from 'axios';
-import { ListItem, SearchBar} from 'react-native-elements';
+import { ListItem, SearchBar, Avatar } from 'react-native-elements';
 import 'moment';
 import 'moment/locale/fr';
 import Moment from 'moment';
@@ -60,36 +60,40 @@ export default class ListeScreen extends React.Component {
     Moment.locale('fr');
     this._getCurrentDay();
     this.retrieveLocation();
-    const { navigation } = this.props;
-    
-    this.focusListener = navigation.addListener("didFocus", async () => {
-      this.checkLocation();
-      this._getCurrentDay();
-      this.setState({
-        loading: true,
-        requestParams_page: 0,
-        startScroll: false,
-        waitForData: false,
-        search: ''
-      });
+    this.focusListener = this.props.navigation.addListener('focus', this.handleFocus);
+  }
 
-      let newPos = await this.getNewLocation();
-      if (this.state.currentPosition && newPos) {
-        if (this.state.currentPosition.latitude !== newPos.latitude || this.state.currentPosition.longitude !== newPos.longitude) {
-          if (this.state.endOrder) {
-            this.setState({ currentPosition: newPos }, () => {
-              this.callList(newPos);
-            });
-          }
-        } else {
-          this.setState({ loading: false });
+  componentWillUnmount() {
+    this.focusListener();
+  }
+
+  handleFocus = async () => {
+    this.checkLocation();
+    this._getCurrentDay();
+    this.setState({
+      loading: true,
+      requestParams_page: 0,
+      startScroll: false,
+      waitForData: false,
+      search: ''
+    });
+
+    let newPos = await this.getNewLocation();
+    if (this.state.currentPosition && newPos) {
+      if (this.state.currentPosition.latitude !== newPos.latitude || this.state.currentPosition.longitude !== newPos.longitude) {
+        if (this.state.endOrder) {
+          this.setState({ currentPosition: newPos }, () => {
+            this.callList(newPos);
+          });
         }
       } else {
         this.setState({ loading: false });
       }
+    } else {
+      this.setState({ loading: false });
+    }
 
-      this._getLocationAsync();
-    });
+    this._getLocationAsync();
   }
 
   _getLocationAsync = async () => {
@@ -147,58 +151,50 @@ export default class ListeScreen extends React.Component {
     }
   }
 
-loadJson(currentPosition, page) {
-  const {requestParams_page, requestParams_count} = this.state
-  if(requestParams_page !== page || page === 1) {
-    const paramsObj = {
-      p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
-      p_p_lifecycle: '2',
-      p_p_state: 'normal',
-      p_p_mode: 'view',
-      p_p_cacheability: 'cacheLevelPage',
-      p_p_col_id: 'column-4',
-      p_p_col_count: '1',
-      p_p_resource_id: 'search',
-      page: page,
-      count: requestParams_count,
-      lat: currentPosition.latitude,
-      long: currentPosition.longitude,
-    }
-  
-    axios.get(`${API_URL}`, {
-        params: paramsObj
-      })
-      .then(res => {
-        let json = {}
-        if(page === 1) {
-          json = res.data.resultList
-        } else {
-          json = this.state.garageList.concat(res.data.resultList)
-        }
-  
-        this.setState({
-          garageList: json,
-          garageListOrder: json,
-          requestParams_page: page,
-          loading: false,
-          waitForData: false
-        })
-  
-      })
-      .catch(err => {
-          console.log('error', err)
-      });
-  } else {
-    this.setState({
-      loading: false
-    })
-  }
+  loadGarageList = (currentPosition, pageNumber) => {
+    const { pageNumber: currentPageNumber, count: pageSize } = this.state;
+    const { latitude, longitude } = currentPosition;
 
-}
+    if (currentPageNumber !== pageNumber || pageNumber === 1) {
+      const params = {
+        p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
+        p_p_lifecycle: '2',
+        p_p_state: 'normal',
+        p_p_mode: 'view',
+        p_p_cacheability: 'cacheLevelPage',
+        p_p_col_id: 'column-4',
+        p_p_col_count: '1',
+        p_p_resource_id: 'search',
+        page: pageNumber,
+        count: pageSize,
+        lat: latitude,
+        long: longitude,
+      };
+
+      axios.get(`${API_URL}`, { params })
+        .then(({ data: { resultList } }) => {
+          const newGarageList = pageNumber === 1 ? resultList : [...this.state.garageList, ...resultList];
+          this.setState({
+            garageList: newGarageList,
+            garageListOrder: newGarageList,
+            pageNumber,
+            loading: false,
+            waitForData: false,
+          });
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    } else {
+      this.setState({
+        loading: false,
+      });
+    }
+  }
 
   callList(currentPosition) {
     let page = this.state.requestParams_page
-    this.loadJson(currentPosition, page+1)
+    this.loadGarageList(currentPosition, page+1)
   }
 
   getDistance(startCoord, endCoord) {
@@ -298,40 +294,32 @@ loadJson(currentPosition, page) {
     return layoutMeasurement.height + contentOffset.y >= (contentSize.height - 20 - (height / 1.5));
   }
 
-  renderListItem(item) {
-    const marker = item
+  renderListItem = (item) => {
     return (
       <ListItem
-        key={item.index}
-        style={styles.ListItems}
-        underlayColor={"transparent"}
-        title={
-          <Text style={styles.title}>
-            {marker.companyName}
-          </Text>
-        }
-        subtitle={
-          <View>
-            <Text style={styles.address}>
-            {marker.address}, {marker.postalCode} {marker.city}
-            </Text>
-            <View style={styles.bottomContent}>
-              {this._getGarageHour(marker.openHours)}
-              <Text style={styles.distance}>
-                {this.getDistance({latitude: this.state.currentPosition.latitude, longitude: this.state.currentPosition.longitude }, {latitude: marker.latitude, longitude: marker.longitude })} km
-              </Text>
-            </View>
-          </View>
-        }
-        leftAvatar={
-          <Image source={require('../assets/images/avatar.png')} style={styles.avatarImage}/>
-        }
-        leftAvatarStyle={{ height: 10 }}
+        key={item.index} 
+        bottomDivider
         onPress={() => this.props.navigation.navigate('Map', {
-          selectedMarker: marker
+          selectedMarker: item
         })}
-      />
-    )
+      >
+        <Avatar source={require('../assets/images/avatar.png')} size="medium" style={styles.avatarImage} />
+        <ListItem.Content>
+          <ListItem.Title style={styles.title}>{item.companyName}</ListItem.Title>
+          <ListItem.Subtitle style={styles.address}>
+            {item.address}, {item.postalCode} {item.city}
+          </ListItem.Subtitle>
+          <View style={styles.bottomContent}>
+            <Text>
+              {this._getGarageHour(item.openHours)}
+            </Text>
+            <Text style={styles.distance}>
+              {this.getDistance({ latitude: this.state.currentPosition.latitude, longitude: this.state.currentPosition.longitude }, { latitude: item.latitude, longitude: item.longitude })} km
+            </Text>
+          </View>
+        </ListItem.Content>
+      </ListItem>
+    );
   }
 
   handleLoadMore() {
@@ -503,6 +491,7 @@ const styles = StyleSheet.create({
   bottomContent: {
     display: 'flex',
     flexDirection: 'row',
+    width: '100%',
     justifyContent: 'space-between',
   },
   avatarImage: {
