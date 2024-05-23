@@ -11,6 +11,7 @@ import {
   Linking,
   Alert,
   StatusBar,
+  Animated,
   AppState
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,9 +44,8 @@ export default class MapScreen extends React.Component {
     this.find_dimensions = this.find_dimensions.bind(this)
     this.mapRef = React.createRef();
     this.panelRef = React.createRef();
-    console.log('yooo loooo');
     this.closePanel = this.closePanel.bind(this);
-    this.handlePanelClose = this.handlePanelClose.bind(this);
+    this.animatedValue = new Animated.Value(0); 
   }
 
   state = {
@@ -73,15 +73,9 @@ export default class MapScreen extends React.Component {
     }
   };
 
-  static defaultProps = {
-    draggableRange: {
-      top: height - 240,
-      bottom: 120
-    }
-  }
-
   componentDidMount = () => {
     this._getLocationAsync()
+    this.listener = this.animatedValue.addListener(this.onAnimatedValueChange)
     Moment.locale('fr')
     this._getCurrentDay()
     this.watchPosition()
@@ -114,6 +108,7 @@ export default class MapScreen extends React.Component {
   }
 
   UNSAFE_componentWillUnmount() {
+    this.animatedValue.removeListener(this.listener);
     this.appStateSubscription?.remove();
     this.focusListener();
     // Also remove geolocation watcher
@@ -128,7 +123,7 @@ export default class MapScreen extends React.Component {
       nextAppState === "active"
     ) {
       const location = await this._getLocationAsync()
-      this.mapRef.current.animateToRegion(location, delay);
+      this.mapRef.current.animateToRegion(location, 300);
     }
     this.setState({ appState: nextAppState });
   };
@@ -221,25 +216,24 @@ export default class MapScreen extends React.Component {
   };
 
   _clickOnMarker = (marker) => {
-    let delay = 300
-    let point = {latitude: marker.latitude - this.state.space, longitude: marker.longitude, latitudeDelta: 0.0922, longitudeDelta: 0.0421 }
-    this.setState({contentPanel: marker})
-    this.setState({visible: true})
-    this.mapRef.current.animateToRegion(point, delay);
-    setTimeout(() => {
-      this.setState({mapRegion: point})
-    }, 400);
+    const point = {
+      latitude: marker.latitude - this.state.space,
+      longitude: marker.longitude,
+      latitudeDelta: 0.0922,
+      longitudeDelta: 0.0421,
+    };
+    this.setState({contentPanel: marker, visible: true, mapRegion: point})
+    this.mapRef.current.animateToRegion(point, 300);
   }
 
   getMarkerFromListe = (marker) => {
-    let delay = 30
     let point = {
       latitude: marker.latitude - this.state.space,
       longitude: marker.longitude,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421
     }
-    this.mapRef.current.animateToRegion(point, delay);
+    this.mapRef.current.animateToRegion(point, 30);
     setTimeout(() => {
       this.setState({
         contentPanel: marker,
@@ -252,24 +246,24 @@ export default class MapScreen extends React.Component {
     }, 400);
   }
 
+  onAnimatedValueChange = ({ value }) => {
+    if (value === 0) {
+      this.closePanel();
+    }
+  };
+
   closePanel = () => {
-    console.log('close panel');
-    let delay = 300
     let point = {
       latitude: this.state.mapRegion.latitude + this.state.space,
       longitude: this.state.mapRegion.longitude,
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421
     }
-    this.setState({visible: false})
-    setTimeout(() => {
-      this.mapRef.current.animateToRegion(point, delay);
-    }, 50);
-    setTimeout(() => {
-      this.setState({
-        mapRegion: point
-      })
-    }, 400);
+    this.setState({ visible: false });
+    this.mapRef.current.animateToRegion(point, 300);
+    this.setState({
+      mapRegion: point
+    })
   }
 
   getDistance = (startCoord, endCoord) => {
@@ -391,27 +385,15 @@ export default class MapScreen extends React.Component {
     }
   }
 
-  handlePanelClose = () => {
-    console.log("close panel");
-    this.closeRequest();
-    this.closePanel();
-  }
-
   centerMap = () => {
-    let delay =  300
     let current = {
       latitude: this.state.currentLocation.latitude,
       longitude: this.state.currentLocation.longitude,
       latitudeDelta: 4,
       longitudeDelta: 4
     }
-    this.mapRef.current.animateToRegion(current, delay);
-    setTimeout(() => {
-      this.setState({
-        visible: false,
-        mapRegion: current
-      })
-    }, delay);
+    this.mapRef.current.animateToRegion(current, 300);
+    this.setState({ visible: false, mapRegion: current })
   }
 
   componentDidUpdate = () => {
@@ -426,8 +408,6 @@ export default class MapScreen extends React.Component {
       navigation.setParams({ selectedMarker: 'no-marker' });
     }
   }
-
-  closeRequest = () => this.setState({visible: false})
 
   render = () => {
     const { mapBase } = this.context
@@ -517,7 +497,7 @@ export default class MapScreen extends React.Component {
         }
         <SlidingUpPanel
           visible={this.state.visible}
-          onRequestClose={this.handlePanelClose}
+          animatedValue={this.animatedValue}
           draggableRange={this.state.draggableRange}
           backdropOpacity={0.1}
           ref={this.panelRef}
