@@ -31,6 +31,7 @@ import AppContext from '../context/AppContext'
 const { height, width } = Dimensions.get('window');
 let alertStatus = true
 
+
 export default class MapScreen extends React.Component {
   static contextType = AppContext;
 
@@ -105,16 +106,6 @@ export default class MapScreen extends React.Component {
         
       })
     });
-  }
-
-  UNSAFE_componentWillUnmount() {
-    this.animatedValue.removeListener(this.listener);
-    this.appStateSubscription?.remove();
-    this.focusListener();
-    // Also remove geolocation watcher
-    if (this.watchID) {
-      this.watchID.remove();
-    }
   }
 
   _handleAppStateChange = async nextAppState => {
@@ -233,7 +224,7 @@ export default class MapScreen extends React.Component {
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421
     }
-    this.mapRef.current.animateToRegion(point, 30);
+    this.mapRef.current.animateToRegion(point, 100);
     setTimeout(() => {
       this.setState({
         contentPanel: marker,
@@ -243,7 +234,7 @@ export default class MapScreen extends React.Component {
       if(this.state.visible === true) {
         this.setState({oneLoad: true})
       }
-    }, 400);
+    }, 200);
   }
 
   onAnimatedValueChange = ({ value }) => {
@@ -396,16 +387,13 @@ export default class MapScreen extends React.Component {
     this.setState({ visible: false, mapRegion: current })
   }
 
-  componentDidUpdate = () => {
-    const { route, navigation } = this.props;
-    const selectedMarker = route.params?.selectedMarker ?? 'no-marker';
-
-    if (
-      this.state.oneLoad === false &&
-      selectedMarker !== "no-marker"
-    ) {
-      this.getMarkerFromListe(selectedMarker);
-      navigation.setParams({ selectedMarker: 'no-marker' });
+  componentDidUpdate(prevProps) {
+    if (prevProps.route.params?.selectedMarker !== this.props.route.params?.selectedMarker) {
+      const selectedMarker = this.props.route.params?.selectedMarker;
+      if (selectedMarker) {
+        this.getMarkerFromListe(selectedMarker);
+        this.props.navigation.setParams({ selectedMarker: null });
+      }
     }
   }
 

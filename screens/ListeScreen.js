@@ -1,8 +1,6 @@
 import React from 'react';
 import geolib from 'geolib';
 import {
-  Image,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -151,12 +149,10 @@ export default class ListeScreen extends React.Component {
     }
   }
 
-  loadGarageList = (currentPosition, pageNumber) => {
-    const { pageNumber: currentPageNumber, count: pageSize } = this.state;
-    const { latitude, longitude } = currentPosition;
-
-    if (currentPageNumber !== pageNumber || pageNumber === 1) {
-      const params = {
+  loadGarageList = (currentPosition, page) => {
+    const { requestParams_page, requestParams_count } = this.state
+    if (requestParams_page !== page || page === 1) {
+      const paramsObj = {
         p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
         p_p_lifecycle: '2',
         p_p_state: 'normal',
@@ -165,31 +161,41 @@ export default class ListeScreen extends React.Component {
         p_p_col_id: 'column-4',
         p_p_col_count: '1',
         p_p_resource_id: 'search',
-        page: pageNumber,
-        count: pageSize,
-        lat: latitude,
-        long: longitude,
-      };
+        page: page,
+        count: requestParams_count,
+        lat: currentPosition.latitude,
+        long: currentPosition.longitude,
+      }
 
-      axios.get(`${API_URL}`, { params })
-        .then(({ data: { resultList } }) => {
-          const newGarageList = pageNumber === 1 ? resultList : [...this.state.garageList, ...resultList];
+      axios.get(`${API_URL}`, {
+        params: paramsObj
+      })
+        .then(res => {
+          let json = {}
+          if (page === 1) {
+            json = res.data.resultList
+          } else {
+            json = this.state.garageList.concat(res.data.resultList)
+          }
+
           this.setState({
-            garageList: newGarageList,
-            garageListOrder: newGarageList,
-            pageNumber,
+            garageList: json,
+            garageListOrder: json,
+            requestParams_page: page,
             loading: false,
-            waitForData: false,
-          });
+            waitForData: false
+          })
+
         })
-        .catch(error => {
-          console.error(error);
+        .catch(err => {
+          console.log('error', err)
         });
     } else {
       this.setState({
-        loading: false,
-      });
+        loading: false
+      })
     }
+
   }
 
   callList(currentPosition) {
@@ -248,7 +254,6 @@ export default class ListeScreen extends React.Component {
     let className = null
     let classNameDot = null
 
-
     let currentTime = Moment(this.state.currentDay.hour, 'HH:mm')
     let amOne = Moment(day[this.state.currentDay.dayNumber].openFromAM, 'HH:mm')
     let amTwo = Moment(day[this.state.currentDay.dayNumber].openToAM, 'HH:mm')
@@ -299,9 +304,9 @@ export default class ListeScreen extends React.Component {
       <ListItem
         key={item.index} 
         bottomDivider
-        onPress={() => this.props.navigation.navigate('Map', {
-          selectedMarker: item
-        })}
+        onPress={() => {
+          this.props.navigation.navigate('MapScreen', { selectedMarker: item })
+        }}
       >
         <Avatar source={require('../assets/images/avatar.png')} size="medium" style={styles.avatarImage} />
         <ListItem.Content>
@@ -409,7 +414,6 @@ let fontSizeTitle = 35
 if (width <= 320 ) {
   fontSizeTitle = 30
 }
-
 
 
 const styles = StyleSheet.create({

@@ -29,7 +29,7 @@
     "apisauce": "^1.1.1",
     "axios": "^0.19.0",
     "deprecated-react-native-prop-types": "^5.0.0",
-    "expo": "51.0.6",
+    "expo": "51.0.8",
     "expo-app-loading": "^2.1.1",
     "expo-asset": "~10.0.6",
     "expo-constants": "~16.0.1",
@@ -37,7 +37,7 @@
     "expo-location": "~17.0.1",
     "expo-modules-autolinking": "~1.11.0",
     "expo-splash-screen": "~0.27.4",
-    "expo-updates": "0.25.12",
+    "expo-updates": "0.25.14",
     "expo-web-browser": "~13.0.3",
     "geolib": "^2.0.24",
     "gitmoji-cli": "^1.9.2",
@@ -49,7 +49,7 @@
     "react-native": "0.74.1",
     "react-native-async-storage": "^0.0.1",
     "react-native-communications": "^2.2.1",
-    "react-native-elements": "^3.4.3",
+    "react-native-elements": "^4.0.0-rc.2",
     "react-native-expo-svg": "^1.0.1",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "~2.16.1",
@@ -66,7 +66,7 @@
   },
   "devDependencies": {
     "babel-preset-expo": "~11.0.0",
-    "jest-expo": "~51.0.1"
+    "jest-expo": "51.0.2"
   },
   "private": true,
   "license": "UNLICENSED"
