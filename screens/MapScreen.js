@@ -45,7 +45,6 @@ export default class MapScreen extends React.Component {
     this.find_dimensions = this.find_dimensions.bind(this)
     this.mapRef = React.createRef();
     this.panelRef = React.createRef();
-    this.closePanel = this.closePanel.bind(this);
     this.animatedValue = new Animated.Value(0); 
   }
 
@@ -76,7 +75,7 @@ export default class MapScreen extends React.Component {
 
   componentDidMount = () => {
     this._getLocationAsync()
-    this.listener = this.animatedValue.addListener(this.onAnimatedValueChange)
+    // this.listener = this.animatedValue.addListener(this.onAnimatedValueChange)
     Moment.locale('fr')
     this._getCurrentDay()
     this.watchPosition()
@@ -109,13 +108,13 @@ export default class MapScreen extends React.Component {
   }
 
   _handleAppStateChange = async nextAppState => {
-    if (
-      this.state.appState.match(/inactive|background/) &&
-      nextAppState === "active"
-    ) {
-      const location = await this._getLocationAsync()
-      this.mapRef.current.animateToRegion(location, 300);
-    }
+    // if (
+    //   this.state.appState.match(/inactive|background/) &&
+    //   nextAppState === "active"
+    // ) {
+      // const location = await this._getLocationAsync()
+      // this.mapRef.current.animateToRegion(location, 300);
+    // }
     this.setState({ appState: nextAppState });
   };
 
@@ -149,17 +148,6 @@ export default class MapScreen extends React.Component {
   find_dimensions = (layout) => {
     let sizeHeight = layout.height
     let sizePanel = sizeHeight
-
-    // if (Platform.OS != "android") {
-    //   // if (isIphoneX()) {
-    //   //   sizePanel += 75 + getBottomSpace()
-    //   // } else {
-    //   sizePanel += 75
-    //   // }
-    // } else {
-    //   sizePanel += 75
-    // }
-
     this.setState({
       draggableRange: {
         top: sizePanel,
@@ -167,8 +155,6 @@ export default class MapScreen extends React.Component {
       }
     }, () => {
       this.panelRef.current.show()
-      // this.mapRef.current.animateToRegion(-sizePanel)
-      // this.mapRef.current.forceUpdate()
     })
   }
 
@@ -237,12 +223,6 @@ export default class MapScreen extends React.Component {
     }, 200);
   }
 
-  onAnimatedValueChange = ({ value }) => {
-    if (value === 0) {
-      this.closePanel();
-    }
-  };
-
   closePanel = () => {
     let point = {
       latitude: this.state.mapRegion.latitude + this.state.space,
@@ -250,12 +230,10 @@ export default class MapScreen extends React.Component {
       latitudeDelta: 0.0922,
       longitudeDelta: 0.0421
     }
-    this.setState({ visible: false });
     this.mapRef.current.animateToRegion(point, 300);
-    this.setState({
-      mapRegion: point
-    })
-  }
+    this.setState({ mapRegion: point})
+    this.setState({ visible: false });
+  };
 
   getDistance = (startCoord, endCoord) => {
     let distanceMetre = geolib.getDistanceSimple(
@@ -302,7 +280,6 @@ export default class MapScreen extends React.Component {
 
     this.state.currentDay.dayNumber = day
     this.state.currentDay.day = dayArray[day]
-
     this.state.currentDay.hour = hour+':'+minute
   }
 
@@ -486,8 +463,9 @@ export default class MapScreen extends React.Component {
         <SlidingUpPanel
           visible={this.state.visible}
           animatedValue={this.animatedValue}
+          onBottomReached={() => this.closePanel()}
           draggableRange={this.state.draggableRange}
-          backdropOpacity={0.1}
+          backdropOpacity={0.2}
           ref={this.panelRef}
         >
             {dragHandler => (
