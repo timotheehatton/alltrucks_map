@@ -371,25 +371,25 @@ export default class ListeScreen extends React.Component {
                 data={this.state.garageList}
                 renderItem={({ item }) => this.renderListItem(item)}
                 keyExtractor={item=>item.companyNo}
-                // onEndReached={() => this.handleLoadMore()}
+                onEndReached={() => this.handleLoadMore()}
                 onEndReachedThreshold={1.5}
                 scrollEnabled={!this.state.waitForData}
                 // bounce={false}
-                onScrollEndDrag={(e) => {
-                  if(e && e.nativeEvent && e.nativeEvent.contentSize && e.nativeEvent.layoutMeasurement ) {
-                    if(e.nativeEvent.targetContentOffset) {
-                      const calc = e.nativeEvent.layoutMeasurement.height + e.nativeEvent.targetContentOffset.y
-                      if(e.nativeEvent.contentSize.height <= calc + 5 && e.nativeEvent.contentSize.height >= calc - 5 ) {
-                        this.handleLoadMore()
-                      }
-                    } else if(e.nativeEvent.contentOffset) {
-                      const calc = e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y
-                      if(e.nativeEvent.contentSize.height <= calc + 5 && e.nativeEvent.contentSize.height >= calc - 5 ) {
-                        this.handleLoadMore()
-                      }
-                    }
-                  }
-                }}
+                // onScrollEndDrag={(e) => {
+                //   if(e && e.nativeEvent && e.nativeEvent.contentSize && e.nativeEvent.layoutMeasurement ) {
+                //     if(e.nativeEvent.targetContentOffset) {
+                //       const calc = e.nativeEvent.layoutMeasurement.height + e.nativeEvent.targetContentOffset.y
+                //       if(e.nativeEvent.contentSize.height <= calc + 5 && e.nativeEvent.contentSize.height >= calc - 5 ) {
+                //         this.handleLoadMore()
+                //       }
+                //     } else if(e.nativeEvent.contentOffset) {
+                //       const calc = e.nativeEvent.layoutMeasurement.height + e.nativeEvent.contentOffset.y
+                //       if(e.nativeEvent.contentSize.height <= calc + 5 && e.nativeEvent.contentSize.height >= calc - 5 ) {
+                //         this.handleLoadMore()
+                //       }
+                //     }
+                //   }
+                // }}
               />
             </View>
           :
