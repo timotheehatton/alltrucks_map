@@ -36,7 +36,7 @@
         "WRITE_EXTERNAL_STORAGE",
         "READ_EXTERNAL_STORAGE"
       ],
-      "versionCode": 29,
+      "versionCode": 30,
       "splash": {
         "backgroundColor": "#051A3D",
         "mdpi": "./assets/images/splash_mdpi.png",
