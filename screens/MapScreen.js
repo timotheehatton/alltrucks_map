@@ -22,6 +22,7 @@ import MapView from 'react-native-maps';
 import { Marker } from 'react-native-maps';
 import SlidingUpPanel from 'rn-sliding-up-panel';
 import haversine from 'haversine';
+import geolib from 'geolib';
 import Communications from 'react-native-communications';
 import 'moment';
 import 'moment/locale/fr';
@@ -512,30 +513,38 @@ export default class MapScreen extends React.Component {
                   </View>
                  <View style={styles.panelBorder}></View>
                   <View style={styles.panelButtonBar}>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openTelApp.bind(this)} >
-                      <View style={styles.panelButtonofBar__container}>
-                        <Feather name="phone" size={24} color="black" />
-                        <Text style={styles.panelButtonofBar__text}>Call</Text>
-                      </View>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openMapApp.bind(this)} >
-                      <View style={styles.panelButtonofBar__container}>
-                        <Feather name="compass" size={24} color="black" />
-                        <Text style={styles.panelButtonofBar__text}>Navigation</Text>
-                      </View>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openMailApp.bind(this)} >
-                      <View style={styles.panelButtonofBar__container}>
-                        <Feather name="mail" size={24} color="black" />
-                        <Text style={styles.panelButtonofBar__text}>Email</Text>
-                      </View>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={styles.panelButtonofBar} underlayColor="#FFF" onPress={this.openWebApp.bind(this)} >
-                      <View style={styles.panelButtonofBar__container}>
-                        <Feather name="external-link" size={24} color="black" />
-                        <Text style={styles.panelButtonofBar__text}>Website</Text>
-                      </View>
-                    </TouchableHighlight>
+                    {this.state.contentPanel.phoneNumber && this.state.contentPanel.phoneNumber.trim() !== '' && (
+                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openTelApp.bind(this)} >
+                        <View style={styles.panelButtonofBar__container}>
+                          <Feather name="phone" size={24} color="black" />
+                          <Text style={styles.panelButtonofBar__text}>Call</Text>
+                        </View>
+                      </TouchableHighlight>
+                    )}
+                    {this.state.contentPanel.latitude && this.state.contentPanel.longitude && (
+                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openMapApp.bind(this)} >
+                        <View style={styles.panelButtonofBar__container}>
+                          <Feather name="compass" size={24} color="black" />
+                          <Text style={styles.panelButtonofBar__text}>Navigation</Text>
+                        </View>
+                      </TouchableHighlight>
+                    )}
+                    {this.state.contentPanel.email && this.state.contentPanel.email.trim() !== '' && (
+                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openMailApp.bind(this)} >
+                        <View style={styles.panelButtonofBar__container}>
+                          <Feather name="mail" size={24} color="black" />
+                          <Text style={styles.panelButtonofBar__text}>Email</Text>
+                        </View>
+                      </TouchableHighlight>
+                    )}
+                    {this.state.contentPanel.web && this.state.contentPanel.web.trim() !== '' && (
+                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openWebApp.bind(this)} >
+                        <View style={styles.panelButtonofBar__container}>
+                          <Feather name="external-link" size={24} color="black" />
+                          <Text style={styles.panelButtonofBar__text}>Website</Text>
+                        </View>
+                      </TouchableHighlight>
+                    )}
                   </View>
                 </View>
                 :
@@ -723,7 +732,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     paddingTop: 21,
     paddingBottom: 21,
     paddingLeft: 16,
@@ -731,6 +740,11 @@ const styles = StyleSheet.create({
   },
   panelButtonofBar: {
     width: '25%',
+  },
+  panelButtonofBarDynamic: {
+    width: 'auto',
+    flex: 1,
+    marginHorizontal: 5,
   },
   panelButtonofBar__text: {
     fontSize: 11,

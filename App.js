@@ -100,107 +100,86 @@ export default class App extends Component {
     }
    };
 
+  generateOpenHours = () => {
+    // Generate default open hours structure
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    return days.map((day, index) => ({
+      day: day,
+      openFromAM: index < 5 ? '08:00' : '00:00', // Mon-Fri open, Sat-Sun closed
+      openToAM: index < 5 ? '12:00' : '00:00',
+      openFromPM: index < 5 ? '14:00' : '00:00',
+      openToPM: index < 5 ? '18:00' : '00:00',
+    }));
+  }
+
+  isValidCoordinate = (lat, lng) => {
+    // Check if coordinates are valid
+    if (!lat || !lng) return false;
+    if (lat === null || lng === null) return false;
+    if (lat === undefined || lng === undefined) return false;
+    if (lat === "" || lng === "") return false;
+    if (lat === "0" || lng === "0") return false;
+    
+    // Convert to number and check
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    
+    if (isNaN(latitude) || isNaN(longitude)) return false;
+    if (latitude === 0 || longitude === 0) return false;
+    if (latitude === 0.0 || longitude === 0.0) return false;
+    
+    // Check valid coordinate ranges
+    if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return false;
+    
+    return true;
+  }
+
   loadJson = (currentLocation, scope) => {
-    const {requestParams_page, requestParams_count} = this.state
-    const paramsObj = {
-      p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
-      p_p_lifecycle: '2',
-      p_p_state: 'normal',
-      p_p_mode: 'view',
-      p_p_cacheability: 'cacheLevelPage',
-      p_p_col_id: 'column-4',
-      p_p_col_count: '1',
-      p_p_resource_id: 'search',
-      page: requestParams_page,
-      count: requestParams_count,
-      lat: currentLocation.latitude,
-      long: currentLocation.longitude,
-    }
-
-    axios.get(`${API_URL}`, {
-        params: paramsObj
-      })
+    // New API doesn't need parameters, returns all workshops at once
+    axios.get(`${API_URL}`)
       .then(res => {
-        if(scope !== 'all') {
-          this.setState({
-            jsonFirstPartLoader: true,
-            mapBase: res.data.resultList
-          })
-        } else {
-          this.setState({
-            jsonFirstPartLoader: true,
-          })
-        }
-        this.startLooping(res.data.resultList, scope)
+        // Transform the data to match expected format
+        const transformedData = res.data.map(workshop => ({
+          companyNo: workshop._companyNo,
+          companyName: workshop._companyName,
+          address: workshop._address,
+          postalCode: workshop._postalCode,
+          city: workshop._city,
+          country: workshop._country,
+          phoneNumber: workshop._phoneNumber,
+          fax: workshop._fax,
+          email: workshop._email,
+          website: workshop._website,
+          web: workshop._website, // Some screens use 'web' field
+          description: workshop._description,
+          latitude: workshop._latitude,
+          longitude: workshop._longitude,
+          imageUrl: workshop._imageId ? `/image/${workshop._imageId}` : null,
+          breakdownService: workshop._breakdownService,
+          breakdownService24h: workshop._breakdownService24h,
+          openHours: this.generateOpenHours(), // Generate dummy open hours for now
+        }));
 
+        // Filter out workshops without valid coordinates
+        const validWorkshops = transformedData.filter(w => 
+          this.isValidCoordinate(w.latitude, w.longitude)
+        );
+
+        console.log(`Loaded ${res.data.length} workshops, ${validWorkshops.length} have valid coordinates`);
+
+        this.setState({
+          jsonFirstPartLoader: true,
+          jsonFullPartLoader: true,
+          mapBase: validWorkshops
+        });
+        
+        this.storeJson(JSON.stringify(validWorkshops));
       })
       .catch(err => {
           console.log('error', err)
       });
   }
 
-  startLooping = async(jsonBase, scope) => {
-    let endGetJson = false
-    let json = jsonBase
-    let page = 2
-    while (!endGetJson) {
-      let response = await this.launchRequest(page)
-      if(response.data.data.resultList.length <= 0) {
-        endGetJson = true
-        this.storeJson(JSON.stringify(json))
-        this.setContextJson(json)
-      } else {
-        json = json.concat(response.data.data.resultList)
-        if(scope !== 'all') {
-          this.setState({
-            mapBase: json
-          })
-        }
-        page++
-      }
-    }
-  }
-
-  launchRequest = (currentPage) => {
-    const {currentLocation, requestParams_count} = this.state
-    const paramsObj = {
-      p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
-      p_p_lifecycle: '2',
-      p_p_state: 'normal',
-      p_p_mode: 'view',
-      p_p_cacheability: 'cacheLevelPage',
-      p_p_col_id: 'column-4',
-      p_p_col_count: '1',
-      p_p_resource_id: 'search',
-      page: currentPage,
-      count: requestParams_count,
-      lat: currentLocation.latitude,
-      long: currentLocation.longitude,
-    }
-
-    return new Promise(resolve => {
-      axios.get(`${API_URL}`, {
-        params: paramsObj
-      })
-      .then(res => {
-        let obj =  {
-          status: 'sucess',
-          data: res,
-          currentPage: currentPage
-        }
-        resolve(obj);
-
-      })
-      .catch(err => {
-        let obj =  {
-          status: 'error',
-          data: err
-        }
-
-        resolve(obj);
-      });
-    });
-  }
 
   render() {
     const { mapBase, jsonFirstPartLoader, isLoadingComplete } = this.state;

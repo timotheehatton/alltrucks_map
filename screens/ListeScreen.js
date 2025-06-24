@@ -38,9 +38,9 @@ export default class ListeScreen extends React.Component {
       hour: null,
     },
     search: '',
-    garageListBase: this.context.mapBase,
-    garageList: this.context.mapBase,
-    garageListOrder: this.context.mapBase,
+    garageListBase: [],
+    garageList: [],
+    garageListOrder: [],
     currentPosition: null,
     endOrder: false,
     alreadyGet: false,
@@ -150,52 +150,36 @@ export default class ListeScreen extends React.Component {
   }
 
   loadGarageList = (currentPosition, page) => {
-    const { requestParams_page, requestParams_count } = this.state
-    if (requestParams_page !== page || page === 1) {
-      const paramsObj = {
-        p_p_id: 'alltrucks_workshop_finder_WAR_alltrucksworkshopfinderportlet',
-        p_p_lifecycle: '2',
-        p_p_state: 'normal',
-        p_p_mode: 'view',
-        p_p_cacheability: 'cacheLevelPage',
-        p_p_col_id: 'column-4',
-        p_p_col_count: '1',
-        p_p_resource_id: 'search',
-        page: page,
-        count: requestParams_count,
-        lat: currentPosition.latitude,
-        long: currentPosition.longitude,
-      }
+    // With the new API, we get all data from context, no need to fetch again
+    const { mapBase } = this.context;
+    
+    if (mapBase && mapBase.length > 0) {
+      // Calculate distances for all workshops
+      const workshopsWithDistance = mapBase.map(workshop => ({
+        ...workshop,
+        distance: this.getDistance(
+          { latitude: currentPosition.latitude, longitude: currentPosition.longitude },
+          { latitude: workshop.latitude, longitude: workshop.longitude }
+        )
+      }));
 
-      axios.get(`${API_URL}`, {
-        params: paramsObj
-      })
-        .then(res => {
-          let json = {}
-          if (page === 1) {
-            json = res.data.resultList
-          } else {
-            json = this.state.garageList.concat(res.data.resultList)
-          }
+      // Sort by distance
+      const sortedWorkshops = workshopsWithDistance.sort((a, b) => a.distance - b.distance);
 
-          this.setState({
-            garageList: json,
-            garageListOrder: json,
-            requestParams_page: page,
-            loading: false,
-            waitForData: false
-          })
-
-        })
-        .catch(err => {
-          console.log('error', err)
-        });
+      this.setState({
+        garageList: sortedWorkshops,
+        garageListOrder: sortedWorkshops,
+        garageListBase: sortedWorkshops,
+        loading: false,
+        waitForData: false,
+        endOrder: true
+      });
     } else {
       this.setState({
-        loading: false
-      })
+        loading: false,
+        waitForData: false
+      });
     }
-
   }
 
   callList(currentPosition) {
@@ -302,7 +286,6 @@ export default class ListeScreen extends React.Component {
   renderListItem = (item) => {
     return (
       <ListItem
-        key={item.index} 
         bottomDivider
         onPress={() => {
           this.props.navigation.navigate('MapScreen', { selectedMarker: item })
@@ -328,12 +311,8 @@ export default class ListeScreen extends React.Component {
   }
 
   handleLoadMore() {
-    if(!this.state.waitForData) {
-      this.setState({
-        waitForData: true
-      })
-      this._getLocationAsync()
-    }
+    // With the new API, all data is loaded at once, no need for pagination
+    return;
   }
 
   render() {
@@ -368,9 +347,9 @@ export default class ListeScreen extends React.Component {
           this.state.endOrder === true && this.state.loading === false ?
             <View style={styles.scrollViewContent} >
               <FlatList
-                data={this.state.garageList}
+                data={this.state.garageList || []}
                 renderItem={({ item }) => this.renderListItem(item)}
-                keyExtractor={item=>item.companyNo}
+                keyExtractor={(item) => item.companyNo ? item.companyNo.toString() : Math.random().toString()}
                 onEndReached={() => this.handleLoadMore()}
                 onEndReachedThreshold={1.5}
                 scrollEnabled={!this.state.waitForData}

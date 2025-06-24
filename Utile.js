@@ -1,1 +1,1 @@
-export const API_URL = 'https://internal.alltrucks.com/werkstattfinder'
+export const API_URL = 'https://internal.alltrucks.com/o/ws/workshops'
