@@ -100,17 +100,6 @@ export default class App extends Component {
     }
    };
 
-  generateOpenHours = () => {
-    // Generate default open hours structure
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    return days.map((day, index) => ({
-      day: day,
-      openFromAM: index < 5 ? '08:00' : '00:00', // Mon-Fri open, Sat-Sun closed
-      openToAM: index < 5 ? '12:00' : '00:00',
-      openFromPM: index < 5 ? '14:00' : '00:00',
-      openToPM: index < 5 ? '18:00' : '00:00',
-    }));
-  }
 
   isValidCoordinate = (lat, lng) => {
     // Check if coordinates are valid
@@ -138,26 +127,12 @@ export default class App extends Component {
     // New API doesn't need parameters, returns all workshops at once
     axios.get(`${API_URL}`)
       .then(res => {
-        // Transform the data to match expected format
+        // Data is already in the correct format, no need to transform field names
         const transformedData = res.data.map(workshop => ({
-          companyNo: workshop._companyNo,
-          companyName: workshop._companyName,
-          address: workshop._address,
-          postalCode: workshop._postalCode,
-          city: workshop._city,
-          country: workshop._country,
-          phoneNumber: workshop._phoneNumber,
-          fax: workshop._fax,
-          email: workshop._email,
-          website: workshop._website,
-          web: workshop._website, // Some screens use 'web' field
-          description: workshop._description,
-          latitude: workshop._latitude,
-          longitude: workshop._longitude,
-          imageUrl: workshop._imageId ? `/image/${workshop._imageId}` : null,
-          breakdownService: workshop._breakdownService,
-          breakdownService24h: workshop._breakdownService24h,
-          openHours: this.generateOpenHours(), // Generate dummy open hours for now
+          ...workshop,
+          web: workshop.website, // Some screens use 'web' field
+          imageUrl: workshop.imageId ? `/image/${workshop.imageId}` : null,
+          // openHours is already provided by the API, no need to generate
         }));
 
         // Filter out workshops without valid coordinates

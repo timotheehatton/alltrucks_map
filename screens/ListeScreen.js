@@ -9,11 +9,12 @@ import {
   ActivityIndicator,
   Platform,
   FlatList,
+  TextInput,
 } from 'react-native';
 
 import { API_URL } from '../Utile'
 import axios from 'axios';
-import { ListItem, SearchBar, Avatar } from 'react-native-elements';
+import { ListItem, Avatar } from 'react-native-elements';
 import 'moment';
 import 'moment/locale/fr';
 import Moment from 'moment';
@@ -223,7 +224,8 @@ export default class ListeScreen extends React.Component {
     let day = Moment().weekday()
     let hour = ("0" + date.getHours()).slice(-2);
     let minute = ("0" + date.getMinutes()).slice(-2);
-    let dayArray = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    // API uses full day names starting with capital letter
+    let dayArray = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
 
     this.state.currentDay.dayNumber = day
     this.state.currentDay.day = dayArray[day]
@@ -232,36 +234,85 @@ export default class ListeScreen extends React.Component {
   }
 
   _getGarageHour(day) {
+    // Check if opening hours data exists
+    if (!day || !Array.isArray(day) || day.length === 0) {
+      return null; // Return nothing if no opening hours data
+    }
+
     this._getCurrentDay()
     let date = new Date();
     let statement = null
     let className = null
     let classNameDot = null
 
+    // Find today's opening hours from the array
+    const todayHours = day.find(h => h.day === this.state.currentDay.day);
+    
+    // Check if today's data exists
+    if (!todayHours) {
+      return null;
+    }
+    
+    // Check if workshop has any opening hours at all
+    const hasMorningHours = todayHours.openFromAM && todayHours.openToAM && 
+                           todayHours.openFromAM !== "" && todayHours.openToAM !== "";
+    const hasAfternoonHours = todayHours.openFromPM && todayHours.openToPM && 
+                             todayHours.openFromPM !== "" && todayHours.openToPM !== "";
+    
+    if (!hasMorningHours && !hasAfternoonHours) {
+      return null; // No opening hours at all
+    }
+
     let currentTime = Moment(this.state.currentDay.hour, 'HH:mm')
-    let amOne = Moment(day[this.state.currentDay.dayNumber].openFromAM, 'HH:mm')
-    let amTwo = Moment(day[this.state.currentDay.dayNumber].openToAM, 'HH:mm')
-    let pmOne = Moment(day[this.state.currentDay.dayNumber].openFromPM, 'HH:mm')
-    let pmTwo = Moment(day[this.state.currentDay.dayNumber].openToPM, 'HH:mm')
+    let isOpen = false;
+    let closingSoon = false;
+    
+    // Check morning hours if available
+    if (hasMorningHours) {
+      let amOne = Moment(todayHours.openFromAM, 'HH:mm')
+      let amTwo = Moment(todayHours.openToAM, 'HH:mm')
+      
+      if (amOne.isValid() && amTwo.isValid()) {
+        if (currentTime >= amOne && currentTime <= amTwo) {
+          isOpen = true;
+          // Check if closing soon (within 1 hour)
+          let amEnd = Moment(todayHours.openToAM, 'HH:mm')
+          let soonAm = amEnd.subtract({'hours': 1})
+          if (currentTime >= soonAm) {
+            closingSoon = true;
+          }
+        }
+      }
+    }
+    
+    // Check afternoon hours if available
+    if (hasAfternoonHours && !isOpen) {
+      let pmOne = Moment(todayHours.openFromPM, 'HH:mm')
+      let pmTwo = Moment(todayHours.openToPM, 'HH:mm')
+      
+      if (pmOne.isValid() && pmTwo.isValid()) {
+        if (currentTime >= pmOne && currentTime <= pmTwo) {
+          isOpen = true;
+          // Check if closing soon (within 1 hour)
+          let pmEnd = Moment(todayHours.openToPM, 'HH:mm')
+          let soonPm = pmEnd.subtract({'hours': 1})
+          if (currentTime >= soonPm) {
+            closingSoon = true;
+          }
+        }
+      }
+    }
 
-    if(currentTime < amOne) {
-      statement = "Closed"
-      className = styles.hour_close
-      classNameDot = styles.hourDot_close
-    } else if((currentTime >= amOne && currentTime <= amTwo) || (currentTime >= pmOne && currentTime <= pmTwo)) {
-      statement = "Currently open"
-      className = styles.hour_open
-      classNameDot = styles.hourDot_open
-      let pmEnd = Moment(day[this.state.currentDay.dayNumber].openToPM, 'HH:mm')
-      let soonPm = pmEnd.subtract({'hours': '01'})
-
-      let amEnd = Moment(day[this.state.currentDay.dayNumber].openToAM, 'HH:mm')
-      let soonAm = amEnd.subtract({'hours': '01'})
-
-      if((currentTime >= soonPm && currentTime <= pmTwo) || (currentTime >= soonAm && currentTime <= amTwo)) {
+    // Set the status based on opening hours
+    if (isOpen) {
+      if (closingSoon) {
         statement = "Closed soon"
         className = styles.hour_soon
         classNameDot = styles.hourDot_soon
+      } else {
+        statement = "Currently open"
+        className = styles.hour_open
+        classNameDot = styles.hourDot_open
       }
     } else {
       statement = "Closed"
@@ -332,14 +383,15 @@ export default class ListeScreen extends React.Component {
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Alltrucks Workshops</Text>
           <View style={styles.searchstyle}>
-            <SearchBar
-              placeholder="Search a workshop"
-              onChangeText={this.updateSearch.bind(this)}
-              value={search}
-              lightTheme={true}
-              containerStyle={{backgroundColor: '#F9F9F9', borderTopWidth: 0, borderBottomWidth: 0}}
-              inputContainerStyle={{backgroundColor: '#EBEBEC', borderRadius: 10,}}
-            />
+            <View style={styles.searchContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search a workshop"
+                onChangeText={this.updateSearch.bind(this)}
+                value={search}
+                placeholderTextColor="#999"
+              />
+            </View>
           </View>
         </View>
         <View style={styles.listContainer}>
@@ -349,7 +401,7 @@ export default class ListeScreen extends React.Component {
               <FlatList
                 data={this.state.garageList || []}
                 renderItem={({ item }) => this.renderListItem(item)}
-                keyExtractor={(item) => item.companyNo ? item.companyNo.toString() : Math.random().toString()}
+                keyExtractor={(item, index) => item.companyNo ? item.companyNo.toString() : `workshop-${index}`}
                 onEndReached={() => this.handleLoadMore()}
                 onEndReachedThreshold={1.5}
                 scrollEnabled={!this.state.waitForData}
@@ -438,6 +490,17 @@ const styles = StyleSheet.create({
   searchstyleBar: {
     backgroundColor: '#F9F9F9',
   },
+  searchContainer: {
+    backgroundColor: '#EBEBEC',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginHorizontal: 10,
+  },
+  searchInput: {
+    height: 36,
+    fontSize: 16,
+    color: '#000',
+  },
   scrollView: {
     backgroundColor: '#fff'
   },
@@ -448,8 +511,7 @@ const styles = StyleSheet.create({
     // height: height
   },
   listContainer: {
-    // backgroundColor: '#fff',
-    backgroundColor: 'red',
+    backgroundColor: '#fff',
     flex: 1,
     // height: height
   },

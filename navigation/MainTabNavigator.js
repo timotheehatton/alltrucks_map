@@ -106,8 +106,8 @@ function App() {
           headerShown: false,
           tabBarActiveTintColor: '#0BB3E0',
           tabBarInactiveTintColor: 'gray',
-          tabBarStyle: { height: 75 },
-          tabBarItemStyle: { paddingBottom: 10 },
+          tabBarStyle: { height: 95 },
+          tabBarItemStyle: { paddingBottom: 10, paddingTop: 10 },
           tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: '700',

@@ -49,7 +49,7 @@
     "react-native": "0.79.2",
     "react-native-async-storage": "^0.0.1",
     "react-native-communications": "^2.2.1",
-    "react-native-elements": "^4.0.0-rc.2",
+    "react-native-elements": "^3.4.3",
     "react-native-expo-svg": "^1.0.1",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "~2.24.0",
