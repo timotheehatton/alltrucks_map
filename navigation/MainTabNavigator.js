@@ -23,6 +23,7 @@ function MapStackNavigator() {
             tabBarIcon: ({ focused }) => (
               <Svg width={23} height={21}>
                 <Path
+                  key="map-path"
                   d="M13.624 5.422a.938.938 0 1 1-1.876 0 .938.938 0 0 1 1.876 0zm..."
                   fill={focused ? "#01B5E2" : "#021A3E"}
                   fillRule="nonzero"
@@ -47,6 +48,7 @@ function ListeStackNavigator() {
             tabBarIcon: ({ focused }) => (
               <Svg width={21} height={17}>
                 <Path
+                  key="list-path"
                   d="M4.186 2.25a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0zM2.311 6.625a1.875 1.875 0 1 1 0 3.75 1.875 1.875 0 0 1 0-3.75zm..."
                   fill={focused ? "#01B5E2" : "#021A3E"}
                   fillRule="nonzero"
@@ -71,6 +73,7 @@ function AssistanceStackNavigator() {
             tabBarIcon: ({ focused }) => (
               <Svg width={26} height={21}>
                 <Path
+                  key="assistance-path"
                   d="M25.854 8.465c.172.3.07.68-.23.855l-4.801 2.793a2.189 2.189 0 0 1-1.45 1.422v..."
                   fill={focused ? "#01B5E2" : "#021A3E"}
                   fillRule="nonzero"
@@ -106,7 +109,7 @@ function App() {
           headerShown: false,
           tabBarActiveTintColor: '#0BB3E0',
           tabBarInactiveTintColor: 'gray',
-          tabBarStyle: { height: 95 },
+          tabBarStyle: { height: 125 },
           tabBarItemStyle: { paddingBottom: 10, paddingTop: 10 },
           tabBarLabelStyle: {
             fontSize: 12,

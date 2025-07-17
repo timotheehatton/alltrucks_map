@@ -233,7 +233,7 @@ export default class ListeScreen extends React.Component {
     this.state.currentDay.hour = hour+':'+minute
   }
 
-  _getGarageHour(day) {
+  _getGarageHour(day, companyNo) {
     // Check if opening hours data exists
     if (!day || !Array.isArray(day) || day.length === 0) {
       return null; // Return nothing if no opening hours data
@@ -321,9 +321,9 @@ export default class ListeScreen extends React.Component {
     }
 
     return (
-      <View style={styles.time}>
-        <View style={[styles.hoursDot, classNameDot]}></View>
-        <Text style={[styles.panelHour, className]}>
+      <View key={`hours-${companyNo}`} style={styles.time}>
+        <View key="hours-dot" style={[styles.hoursDot, classNameDot]}></View>
+        <Text key="hours-text" style={[styles.panelHour, className]}>
           {statement}
         </Text>
       </View>
@@ -334,9 +334,10 @@ export default class ListeScreen extends React.Component {
     return layoutMeasurement.height + contentOffset.y >= (contentSize.height - 20 - (height / 1.5));
   }
 
-  renderListItem = (item) => {
+  renderListItem = (item, index) => {
     return (
       <ListItem
+        key={index.toString()}
         bottomDivider
         onPress={() => {
           this.props.navigation.navigate('MapScreen', { selectedMarker: item })
@@ -349,10 +350,10 @@ export default class ListeScreen extends React.Component {
             {item.address}, {item.postalCode} {item.city}
           </ListItem.Subtitle>
           <View style={styles.bottomContent}>
-            <Text>
-              {this._getGarageHour(item.openHours)}
+            <Text key={`hours-info-${item.companyNo}`}>
+              {this._getGarageHour(item.openHours, item.companyNo)}
             </Text>
-            <Text style={styles.distance}>
+            <Text key={`distance-${item.companyNo}`} style={styles.distance}>
               {this.getDistance({ latitude: this.state.currentPosition.latitude, longitude: this.state.currentPosition.longitude }, { latitude: item.latitude, longitude: item.longitude })} km
             </Text>
           </View>
@@ -400,8 +401,8 @@ export default class ListeScreen extends React.Component {
             <View style={styles.scrollViewContent} >
               <FlatList
                 data={this.state.garageList || []}
-                renderItem={({ item }) => this.renderListItem(item)}
-                keyExtractor={(item, index) => item.companyNo ? item.companyNo.toString() : `workshop-${index}`}
+                renderItem={({ item, index }) => this.renderListItem(item, index)}
+                keyExtractor={(item, index) => index.toString()}
                 onEndReached={() => this.handleLoadMore()}
                 onEndReachedThreshold={1.5}
                 scrollEnabled={!this.state.waitForData}
@@ -497,7 +498,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   searchInput: {
-    height: 36,
+    height: 40,
     fontSize: 16,
     color: '#000',
   },

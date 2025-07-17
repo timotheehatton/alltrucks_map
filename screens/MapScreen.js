@@ -492,29 +492,29 @@ export default class MapScreen extends React.Component {
                     </View>
                     <View style={styles.timeContainer}>
                       <View style={styles.dayContainer}>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "monday" ? styles.hourContainer__dayCurrent : null]}>Monday</Text>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "tuesday" ? styles.hourContainer__dayCurrent : null]}>Tuesday</Text>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "wednesday" ? styles.hourContainer__dayCurrent : null]}>Wednesday</Text>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "thursday" ? styles.hourContainer__dayCurrent : null]}>Thursday</Text>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "friday" ? styles.hourContainer__dayCurrent : null]}>Friday</Text>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "saturday" ? styles.hourContainer__dayCurrent : null]}>Saturday</Text>
-                        <Text style={[styles.hourContainer__day, this.state.currentDay.day === "sunday" ? styles.hourContainer__dayCurrent : null]}>Sunday</Text>
+                        <Text key="monday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "monday" ? styles.hourContainer__dayCurrent : null]}>Monday</Text>
+                        <Text key="tuesday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "tuesday" ? styles.hourContainer__dayCurrent : null]}>Tuesday</Text>
+                        <Text key="wednesday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "wednesday" ? styles.hourContainer__dayCurrent : null]}>Wednesday</Text>
+                        <Text key="thursday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "thursday" ? styles.hourContainer__dayCurrent : null]}>Thursday</Text>
+                        <Text key="friday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "friday" ? styles.hourContainer__dayCurrent : null]}>Friday</Text>
+                        <Text key="saturday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "saturday" ? styles.hourContainer__dayCurrent : null]}>Saturday</Text>
+                        <Text key="sunday-label" style={[styles.hourContainer__day, this.state.currentDay.day === "sunday" ? styles.hourContainer__dayCurrent : null]}>Sunday</Text>
                       </View>
                       <View style={styles.hourContainer}>
-                        <Text style={[styles.hourContainer__hour , this.state.currentDay.day === "monday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[0].openFromAM !== "" && this.state.contentPanel.openHours[0].openFromAM !== undefined ? this.state.contentPanel.openHours[0].openFromAM + " - " + this.state.contentPanel.openHours[0].openToAM : "Closed"}{this.state.contentPanel.openHours[0].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[0].openFromPM}{this.state.contentPanel.openHours[0].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[0].openToPM}</Text>
-                        <Text style={[styles.hourContainer__hour, this.state.currentDay.day === "tuesday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[1].openFromAM !== "" && this.state.contentPanel.openHours[1].openFromAM !== undefined ? this.state.contentPanel.openHours[1].openFromAM + " - " + this.state.contentPanel.openHours[1].openToAM : "Closed"}{this.state.contentPanel.openHours[1].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[1].openFromPM}{this.state.contentPanel.openHours[1].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[1].openToPM}</Text>
-                        <Text style={[styles.hourContainer__hour, this.state.currentDay.day === "wednesday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[2].openFromAM !== "" && this.state.contentPanel.openHours[2].openFromAM !== undefined ? this.state.contentPanel.openHours[2].openFromAM + " - " + this.state.contentPanel.openHours[2].openToAM : "Closed"}{this.state.contentPanel.openHours[2].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[2].openFromPM}{this.state.contentPanel.openHours[2].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[2].openToPM}</Text>
-                        <Text style={[styles.hourContainer__hour, this.state.currentDay.day === "thursday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[3].openFromAM !== "" && this.state.contentPanel.openHours[3].openFromAM !== undefined ? this.state.contentPanel.openHours[3].openFromAM + " - " + this.state.contentPanel.openHours[3].openToAM : "Closed"}{this.state.contentPanel.openHours[3].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[3].openFromPM}{this.state.contentPanel.openHours[3].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[3].openToPM}</Text>
-                        <Text style={[styles.hourContainer__hour, this.state.currentDay.day === "friday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[4].openFromAM !== "" && this.state.contentPanel.openHours[4].openFromAM !== undefined ? this.state.contentPanel.openHours[4].openFromAM + " - " + this.state.contentPanel.openHours[4].openToAM : "Closed"}{this.state.contentPanel.openHours[4].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[4].openFromPM}{this.state.contentPanel.openHours[4].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[4].openToPM}</Text>
-                        <Text style={[styles.hourContainer__hour, this.state.currentDay.day === "saturday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[5].openFromAM !== "" && this.state.contentPanel.openHours[5].openFromAM !== undefined ? this.state.contentPanel.openHours[5].openFromAM + " - " + this.state.contentPanel.openHours[5].openToAM : "Closed"}{this.state.contentPanel.openHours[5].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[5].openFromPM}{this.state.contentPanel.openHours[5].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[5].openToPM}</Text>
-                        <Text style={[styles.hourContainer__hour, this.state.currentDay.day === "sunday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[6].openFromAM !== "" && this.state.contentPanel.openHours[6].openFromAM !== undefined ? this.state.contentPanel.openHours[6].openFromAM + " - " + this.state.contentPanel.openHours[6].openToAM : "Closed"}{this.state.contentPanel.openHours[6].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[6].openFromPM}{this.state.contentPanel.openHours[6].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[6].openToPM}</Text>
+                        <Text key="monday-hours" style={[styles.hourContainer__hour , this.state.currentDay.day === "monday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[0].openFromAM !== "" && this.state.contentPanel.openHours[0].openFromAM !== undefined ? this.state.contentPanel.openHours[0].openFromAM + " - " + this.state.contentPanel.openHours[0].openToAM : "Closed"}{this.state.contentPanel.openHours[0].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[0].openFromPM}{this.state.contentPanel.openHours[0].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[0].openToPM}</Text>
+                        <Text key="tuesday-hours" style={[styles.hourContainer__hour, this.state.currentDay.day === "tuesday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[1].openFromAM !== "" && this.state.contentPanel.openHours[1].openFromAM !== undefined ? this.state.contentPanel.openHours[1].openFromAM + " - " + this.state.contentPanel.openHours[1].openToAM : "Closed"}{this.state.contentPanel.openHours[1].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[1].openFromPM}{this.state.contentPanel.openHours[1].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[1].openToPM}</Text>
+                        <Text key="wednesday-hours" style={[styles.hourContainer__hour, this.state.currentDay.day === "wednesday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[2].openFromAM !== "" && this.state.contentPanel.openHours[2].openFromAM !== undefined ? this.state.contentPanel.openHours[2].openFromAM + " - " + this.state.contentPanel.openHours[2].openToAM : "Closed"}{this.state.contentPanel.openHours[2].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[2].openFromPM}{this.state.contentPanel.openHours[2].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[2].openToPM}</Text>
+                        <Text key="thursday-hours" style={[styles.hourContainer__hour, this.state.currentDay.day === "thursday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[3].openFromAM !== "" && this.state.contentPanel.openHours[3].openFromAM !== undefined ? this.state.contentPanel.openHours[3].openFromAM + " - " + this.state.contentPanel.openHours[3].openToAM : "Closed"}{this.state.contentPanel.openHours[3].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[3].openFromPM}{this.state.contentPanel.openHours[3].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[3].openToPM}</Text>
+                        <Text key="friday-hours" style={[styles.hourContainer__hour, this.state.currentDay.day === "friday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[4].openFromAM !== "" && this.state.contentPanel.openHours[4].openFromAM !== undefined ? this.state.contentPanel.openHours[4].openFromAM + " - " + this.state.contentPanel.openHours[4].openToAM : "Closed"}{this.state.contentPanel.openHours[4].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[4].openFromPM}{this.state.contentPanel.openHours[4].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[4].openToPM}</Text>
+                        <Text key="saturday-hours" style={[styles.hourContainer__hour, this.state.currentDay.day === "saturday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[5].openFromAM !== "" && this.state.contentPanel.openHours[5].openFromAM !== undefined ? this.state.contentPanel.openHours[5].openFromAM + " - " + this.state.contentPanel.openHours[5].openToAM : "Closed"}{this.state.contentPanel.openHours[5].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[5].openFromPM}{this.state.contentPanel.openHours[5].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[5].openToPM}</Text>
+                        <Text key="sunday-hours" style={[styles.hourContainer__hour, this.state.currentDay.day === "sunday" ? styles.hourContainer__dayCurrent : null]}>{this.state.contentPanel.openHours[6].openFromAM !== "" && this.state.contentPanel.openHours[6].openFromAM !== undefined ? this.state.contentPanel.openHours[6].openFromAM + " - " + this.state.contentPanel.openHours[6].openToAM : "Closed"}{this.state.contentPanel.openHours[6].openFromPM ? ' / ' : ''} {this.state.contentPanel.openHours[6].openFromPM}{this.state.contentPanel.openHours[6].openToPM ? ' - ' : ''}{this.state.contentPanel.openHours[6].openToPM}</Text>
                       </View>
                     </View>
                   </View>
                  <View style={styles.panelBorder}></View>
                   <View style={styles.panelButtonBar}>
                     {this.state.contentPanel.phoneNumber && this.state.contentPanel.phoneNumber.trim() !== '' && (
-                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openTelApp.bind(this)} >
+                      <TouchableHighlight key="phone-button" style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openTelApp.bind(this)} >
                         <View style={styles.panelButtonofBar__container}>
                           <Feather name="phone" size={24} color="black" />
                           <Text style={styles.panelButtonofBar__text}>Call</Text>
@@ -522,7 +522,7 @@ export default class MapScreen extends React.Component {
                       </TouchableHighlight>
                     )}
                     {this.state.contentPanel.latitude && this.state.contentPanel.longitude && (
-                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openMapApp.bind(this)} >
+                      <TouchableHighlight key="navigation-button" style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openMapApp.bind(this)} >
                         <View style={styles.panelButtonofBar__container}>
                           <Feather name="compass" size={24} color="black" />
                           <Text style={styles.panelButtonofBar__text}>Navigation</Text>
@@ -530,7 +530,7 @@ export default class MapScreen extends React.Component {
                       </TouchableHighlight>
                     )}
                     {this.state.contentPanel.email && this.state.contentPanel.email.trim() !== '' && (
-                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openMailApp.bind(this)} >
+                      <TouchableHighlight key="email-button" style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openMailApp.bind(this)} >
                         <View style={styles.panelButtonofBar__container}>
                           <Feather name="mail" size={24} color="black" />
                           <Text style={styles.panelButtonofBar__text}>Email</Text>
@@ -538,7 +538,7 @@ export default class MapScreen extends React.Component {
                       </TouchableHighlight>
                     )}
                     {this.state.contentPanel.web && this.state.contentPanel.web.trim() !== '' && (
-                      <TouchableHighlight style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openWebApp.bind(this)} >
+                      <TouchableHighlight key="website-button" style={[styles.panelButtonofBar, styles.panelButtonofBarDynamic]} underlayColor="#FFF" onPress={this.openWebApp.bind(this)} >
                         <View style={styles.panelButtonofBar__container}>
                           <Feather name="external-link" size={24} color="black" />
                           <Text style={styles.panelButtonofBar__text}>Website</Text>
@@ -796,7 +796,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.22,
   },
   loaderContainer: {
-    backgroundColor: '#FFFF',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import { Platform, StatusBar, StyleSheet, View, ActivityIndicator, Text, AsyncStorage } from 'react-native'
+import { Platform, StyleSheet, View, ActivityIndicator, Text, AsyncStorage } from 'react-native'
+import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Font from 'expo-font'
@@ -21,7 +22,6 @@ export default class App extends Component {
     jsonFullPartLoader: false,
     currentLocation: null,
     hasLocationPermissions: null,
-
     requestParams_count: 40,
     requestParams_page: 1,
   }
@@ -140,8 +140,6 @@ export default class App extends Component {
           this.isValidCoordinate(w.latitude, w.longitude)
         );
 
-        console.log(`Loaded ${res.data.length} workshops, ${validWorkshops.length} have valid coordinates`);
-
         this.setState({
           jsonFirstPartLoader: true,
           jsonFullPartLoader: true,
@@ -181,7 +179,7 @@ export default class App extends Component {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <AppContext.Provider value={{ mapBase: mapBase }}>
             <View style={styles.container}>
-              {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
+              <StatusBar style="auto" />
               <MainTabNavigator />
             </View>
           </AppContext.Provider>
